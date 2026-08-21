@@ -7,6 +7,10 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    environment: crates
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -16,4 +20,8 @@ jobs:
           TAG="${GITHUB_REF_NAME#v}"
           PKG=$(grep -m1 '^version' Cargo.toml | cut -d'"' -f2)
           [ "$TAG" = "$PKG" ] || { echo "tag $TAG != Cargo.toml $PKG"; exit 1; }
-      - run: cargo publish --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      - uses: rust-lang/crates-io-auth-action@v1
+        id: auth
+      - run: cargo publish
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}

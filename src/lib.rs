@@ -271,14 +271,28 @@ impl Client {
             .await
     }
 
-    pub async fn styleguide(&self, domain: &str) -> Result<Value> {
-        self.request(
-            reqwest::Method::GET,
-            "/v1/web/styleguide",
-            None,
-            &[("domain", domain.to_string())],
-        )
-        .await
+    pub async fn styleguide(&self, domain_or_url: &str) -> Result<Value> {
+        self.styleguide_with(domain_or_url, StyleguideOptions::default())
+            .await
+    }
+
+    pub async fn styleguide_with(
+        &self,
+        domain_or_url: &str,
+        options: StyleguideOptions,
+    ) -> Result<Value> {
+        let lower = domain_or_url.to_ascii_lowercase();
+        let key = if lower.starts_with("http://") || lower.starts_with("https://") {
+            "url"
+        } else {
+            "domain"
+        };
+        let mut query = vec![(key, domain_or_url.to_string())];
+        if let Some(max_age) = options.max_age {
+            query.push(("maxAge", max_age.to_string()));
+        }
+        self.request(reqwest::Method::GET, "/v1/web/styleguide", None, &query)
+            .await
     }
 
     pub async fn screenshot(

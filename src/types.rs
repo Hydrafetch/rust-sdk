@@ -231,6 +231,11 @@ pub struct LogoOptions {
     pub kind: Option<String>,
 }
 
+#[derive(Debug, Clone, Default)]
+pub struct StyleguideOptions {
+    pub max_age: Option<u64>,
+}
+
 #[derive(Debug, Clone, Default, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ScreenshotOptions {

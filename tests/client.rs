@@ -284,3 +284,24 @@ async fn job_polling_times_out() {
 
     assert!(err.is_timeout());
 }
+
+#[tokio::test]
+async fn styleguide_reads_one_page_fresh() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/v1/web/styleguide"))
+        .and(query_param("url", "https://stripe.com/pricing"))
+        .and(query_param("maxAge", "0"))
+        .respond_with(ok(json!({ "success": true, "data": {} })))
+        .expect(1)
+        .mount(&server)
+        .await;
+
+    let hf = client_for(&server).await;
+    hf.styleguide_with(
+        "https://stripe.com/pricing",
+        hydrafetch::StyleguideOptions { max_age: Some(0) },
+    )
+    .await
+    .unwrap();
+}

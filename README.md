@@ -166,6 +166,7 @@ use hydrafetch::LogoOptions;
 hf.brand("stripe.com").await?;                                              // logos, colours, fonts, socials
 hf.logo("stripe.com", Some(LogoOptions { theme: Some("dark".into()), kind: None })).await?;
 hf.styleguide("stripe.com").await?;                                         // computed design system
+hf.styleguide_with("https://stripe.com/pricing", StyleguideOptions { max_age: Some(0) }).await?; // one page, read fresh
 ```
 
 For logos in a browser use [`@hydrafetch/client-sdk`](https://github.com/Hydrafetch/client-sdk) with a publishable key. Those bill against logo pulls rather than credits.
@@ -224,7 +225,7 @@ let hf = Client::builder()
 | `extract(urls, Option<ExtractOptions>)` | `ExtractResult` | 5 per URL |
 | `brand(domain)` | `serde_json::Value` | 5 |
 | `logo(domain, Option<LogoOptions>)` | `serde_json::Value` | 1 |
-| `styleguide(domain)` | `serde_json::Value` | 10 |
+| `styleguide(domain_or_url)`, `styleguide_with(domain_or_url, options)` | `serde_json::Value` | 10 |
 | `screenshot(url, Option<ScreenshotOptions>)` | `ScreenshotResult` | 5 |
 | `images(url)` | `ImagesResult` | 1 |
 | `crawl(url, opts, wait)`, `batch(urls, opts, wait)` | `Job` | 1 per page |

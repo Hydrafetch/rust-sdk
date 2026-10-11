@@ -91,6 +91,22 @@ for item in out.results {
 
 Set `prompt` instead of, or alongside, `schema` to describe the fields in plain language.
 
+Sites that price or stock by delivery area serve a different page for each area. Set `location` to fetch as if from a country and language, and `headers` to send the cookie that picks the store or area, the same options `scrape` takes.
+
+```rust
+let out = hf
+    .extract(
+        &["https://shop.example/search?q=ghee"],
+        Some(ExtractOptions {
+            prompt: Some("every product with its size and price".into()),
+            location: Some(Location { country: Some("in".into()), ..Default::default() }),
+            headers: Some([("Cookie".to_string(), "store_id=42".to_string())].into()),
+            ..Default::default()
+        }),
+    )
+    .await?;
+```
+
 ## Discovery and bulk work
 
 `map` lists a site's URLs for one credit without fetching any page.

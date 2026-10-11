@@ -1,4 +1,6 @@
-use hydrafetch::{BatchOptions, Client, Format, ScrapeOptions, WaitOptions};
+use hydrafetch::{
+    BatchOptions, Client, ExtractOptions, Format, Location, ScrapeOptions, WaitOptions,
+};
 use serde_json::{json, Value};
 use std::time::Duration;
 use wiremock::matchers::{header, method, path, query_param};
@@ -71,6 +73,40 @@ async fn options_ride_alongside_the_url() {
     assert_eq!(body["preferStructure"], true);
     assert_eq!(body["formats"], json!(["markdown", "links"]));
     assert!(body.get("timeout").is_none());
+}
+
+#[tokio::test]
+async fn extract_sends_location_and_headers() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/v1/web/extract"))
+        .respond_with(ok(json!({ "success": true, "data": { "results": [] } })))
+        .mount(&server)
+        .await;
+
+    let hf = client_for(&server).await;
+    hf.extract(
+        &["https://shop.example/s?q=ghee"],
+        Some(ExtractOptions {
+            prompt: Some("products and prices".into()),
+            location: Some(Location {
+                country: Some("in".into()),
+                languages: Some(vec!["en-IN".into()]),
+            }),
+            headers: Some([("Cookie".to_string(), "store_id=42".to_string())].into()),
+            ..Default::default()
+        }),
+    )
+    .await
+    .unwrap();
+
+    let requests = server.received_requests().await.unwrap();
+    let body: Value = requests[0].body_json().unwrap();
+    assert_eq!(
+        body["location"],
+        json!({ "country": "in", "languages": ["en-IN"] })
+    );
+    assert_eq!(body["headers"], json!({ "Cookie": "store_id=42" }));
 }
 
 #[tokio::test]

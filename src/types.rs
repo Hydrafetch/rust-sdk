@@ -17,6 +17,15 @@ pub enum Format {
 
 #[derive(Debug, Clone, Default, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct Location {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub country: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub languages: Option<Vec<String>>,
+}
+
+#[derive(Debug, Clone, Default, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ScrapeOptions {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub formats: Option<Vec<Format>>,
@@ -44,6 +53,8 @@ pub struct ScrapeOptions {
     pub wait_for: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub timeout: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub location: Option<Location>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub headers: Option<HashMap<String, String>>,
 }
@@ -147,7 +158,15 @@ pub struct ExtractOptions {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub show_sources: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub show_confidence: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub merge_entities: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_age: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub location: Option<Location>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub headers: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Clone, Deserialize)]

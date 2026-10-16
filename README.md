@@ -30,7 +30,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-Create a key at [app.hydrafetch.com](https://app.hydrafetch.com). `Client::from_env()` reads `HYDRAFETCH_API_KEY`; `Client::new("hf_...")` takes one directly.
+Copy your key from [app.hydrafetch.com](https://app.hydrafetch.com). `Client::from_env()` reads `HYDRAFETCH_API_KEY`; `Client::new("hf_...")` takes one directly.
 
 The client is cheap to clone and safe to share across tasks.
 

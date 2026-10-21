@@ -187,6 +187,24 @@ hf.styleguide_with("https://stripe.com/pricing", StyleguideOptions { max_age: So
 
 For logos in a browser use [`@hydrafetch/client-sdk`](https://github.com/Hydrafetch/client-sdk) with a publishable key. Those bill against logo pulls rather than credits.
 
+## Rating results
+
+Tell us when a result was wrong, so it gets looked at. It is free, and rating the same request again replaces the earlier rating.
+
+```rust
+use hydrafetch::{RateResultInput, Rating};
+
+hf.scrape("https://stripe.com/pricing", None).await?;
+let mut rating = RateResultInput::for_request(hf.last_request_id().unwrap(), Rating::Bad);
+rating.reasons = vec!["missing_content".into()];
+rating.note = Some("The enterprise tier is missing".into());
+hf.rate_result(rating).await?;
+
+hf.rate_result(RateResultInput::for_url("https://stripe.com/pricing", Rating::Good)).await?;
+```
+
+Reasons are `missing_content`, `wrong_content`, `blocked`, `slow`, `formatting` and `other`.
+
 ## Error handling
 
 All failures are `hydrafetch::Error`.
@@ -247,6 +265,7 @@ let hf = Client::builder()
 | `crawl(url, opts, wait)`, `batch(urls, opts, wait)` | `Job` | 1 per page |
 | `start_crawl`, `start_batch` | `String` | 1 per page |
 | `crawl_status(id)`, `batch_status(id)` | `Job` | free |
+| `rate_result(input)` | `RateResultResponse` | free |
 
 Failed requests are not billed. Pricing does not vary with page difficulty, so there is no render, stealth or proxy option to set.
 

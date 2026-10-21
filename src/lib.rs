@@ -6,6 +6,7 @@ pub use types::*;
 
 use serde::Deserialize;
 use serde_json::{json, Value};
+use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 const DEFAULT_BASE_URL: &str = "https://api.hydrafetch.com";
@@ -75,6 +76,7 @@ impl ClientBuilder {
             base_url: self.base_url,
             http,
             max_retries: self.max_retries,
+            last_request_id: Arc::new(Mutex::new(None)),
         })
     }
 }
@@ -85,6 +87,7 @@ pub struct Client {
     base_url: String,
     http: reqwest::Client,
     max_retries: u32,
+    last_request_id: Arc<Mutex<Option<String>>>,
 }
 
 impl Client {
@@ -147,6 +150,15 @@ impl Client {
             };
 
             let status = response.status().as_u16();
+            if let Some(id) = response
+                .headers()
+                .get("x-request-id")
+                .and_then(|v| v.to_str().ok())
+            {
+                if let Ok(mut last) = self.last_request_id.lock() {
+                    *last = Some(id.to_string());
+                }
+            }
             let text = response.text().await.map_err(Error::Transport)?;
             let envelope: Option<Envelope> = serde_json::from_str(&text).ok();
 
@@ -200,6 +212,24 @@ impl Client {
             }
         }
         body
+    }
+
+    pub fn last_request_id(&self) -> Option<String> {
+        self.last_request_id.lock().ok().and_then(|id| id.clone())
+    }
+
+    pub async fn rate_result(&self, input: RateResultInput) -> Result<RateResultResponse> {
+        if input.request_id.is_none() && input.url.is_none() {
+            return Err(Error::Api {
+                code: "VALIDATION_ERROR".to_string(),
+                message: "pass request_id or url to say which result you are rating".to_string(),
+                status: 400,
+                request_id: None,
+            });
+        }
+        let body = serde_json::to_value(input)?;
+        self.request(reqwest::Method::POST, "/v1/web/feedback", Some(body), &[])
+            .await
     }
 
     pub async fn scrape(&self, url: &str, options: Option<ScrapeOptions>) -> Result<ScrapeResult> {

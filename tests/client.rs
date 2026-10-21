@@ -1,5 +1,6 @@
 use hydrafetch::{
-    BatchOptions, Client, ExtractOptions, Format, Location, ScrapeOptions, WaitOptions,
+    BatchOptions, Client, ExtractOptions, Format, Location, RateResultInput, Rating, ScrapeOptions,
+    WaitOptions,
 };
 use serde_json::{json, Value};
 use std::time::Duration;
@@ -340,4 +341,55 @@ async fn styleguide_reads_one_page_fresh() {
     )
     .await
     .unwrap();
+}
+
+#[tokio::test]
+async fn rate_result_posts_the_rating_for_the_last_request() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/v1/web/scrape"))
+        .respond_with(
+            ok(json!({ "success": true, "data": { "url": "u", "markdown": "# hi" } }))
+                .insert_header("x-request-id", "r1"),
+        )
+        .mount(&server)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/v1/web/feedback"))
+        .respond_with(ok(
+            json!({ "success": true, "data": { "id": "f1", "requestId": "r1", "rating": "bad" } }),
+        ))
+        .mount(&server)
+        .await;
+
+    let hf = client_for(&server).await;
+    hf.scrape("https://example.com", None).await.unwrap();
+    assert_eq!(hf.last_request_id().as_deref(), Some("r1"));
+
+    let mut input = RateResultInput::for_request(hf.last_request_id().unwrap(), Rating::Bad);
+    input.reasons = vec!["missing_content".to_string()];
+    input.note = Some("no prices".to_string());
+    let out = hf.rate_result(input).await.unwrap();
+    assert_eq!(out.rating, Rating::Bad);
+
+    let requests = server.received_requests().await.unwrap();
+    let body: Value = serde_json::from_slice(&requests[1].body).unwrap();
+    assert_eq!(
+        body,
+        json!({ "requestId": "r1", "rating": "bad", "reasons": ["missing_content"], "note": "no prices" })
+    );
+}
+
+#[tokio::test]
+async fn rate_result_needs_a_target() {
+    let server = MockServer::start().await;
+    let hf = client_for(&server).await;
+    let input = RateResultInput {
+        request_id: None,
+        url: None,
+        rating: Rating::Good,
+        reasons: Vec::new(),
+        note: None,
+    };
+    assert!(hf.rate_result(input).await.is_err());
 }

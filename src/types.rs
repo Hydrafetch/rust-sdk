@@ -311,3 +311,54 @@ impl Default for WaitOptions {
         }
     }
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Rating {
+    Good,
+    Bad,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RateResultInput {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub request_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub url: Option<String>,
+    pub rating: Rating,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub reasons: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub note: Option<String>,
+}
+
+impl RateResultInput {
+    pub fn for_request(request_id: impl Into<String>, rating: Rating) -> Self {
+        Self {
+            request_id: Some(request_id.into()),
+            url: None,
+            rating,
+            reasons: Vec::new(),
+            note: None,
+        }
+    }
+
+    pub fn for_url(url: impl Into<String>, rating: Rating) -> Self {
+        Self {
+            request_id: None,
+            url: Some(url.into()),
+            rating,
+            reasons: Vec::new(),
+            note: None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RateResultResponse {
+    pub id: String,
+    pub request_id: String,
+    pub rating: Rating,
+}

@@ -362,3 +362,95 @@ pub struct RateResultResponse {
     pub request_id: String,
     pub rating: Rating,
 }
+
+/// Narrows a jobs search. Each 10 jobs returned cost 1 credit.
+#[derive(Debug, Clone, Default, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SearchJobsOptions {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub location: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub remote_only: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub posted_within_days: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub limit: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub include_descriptions: Option<bool>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct JobPay {
+    pub min: Option<f64>,
+    pub max: Option<f64>,
+    pub currency: Option<String>,
+    pub interval: Option<String>,
+}
+
+/// One open job from a company career site or hiring platform.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OpenJob {
+    pub title: String,
+    pub company: Option<String>,
+    pub domain: String,
+    pub board: String,
+    pub department: Option<String>,
+    pub location: Option<String>,
+    pub remote: Option<bool>,
+    pub employment_type: Option<String>,
+    pub posted_at: Option<String>,
+    pub first_seen_at: String,
+    pub url: Option<String>,
+    pub apply_url: Option<String>,
+    pub pay: Option<JobPay>,
+    #[serde(default)]
+    pub description: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HiringChangesOptions {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub include_descriptions: Option<bool>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct HiringCounts {
+    pub open: u64,
+    pub opened: u64,
+    pub closed: u64,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HiringChangePosting {
+    pub title: String,
+    pub department: Option<String>,
+    pub location: Option<String>,
+    pub seniority: String,
+    pub board: String,
+    pub url: Option<String>,
+    pub posted_at: Option<String>,
+    pub first_seen_at: String,
+    pub closed_at: Option<String>,
+    #[serde(default)]
+    pub description: Option<String>,
+}
+
+/// What changed in one company's hiring since a date.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CompanyHiringChanges {
+    pub domain: String,
+    pub company: Option<String>,
+    pub last_read_at: Option<String>,
+    pub since: String,
+    pub totals: HiringCounts,
+    pub by_department: HashMap<String, HiringCounts>,
+    pub by_seniority: HashMap<String, HiringCounts>,
+    pub by_location: HashMap<String, HiringCounts>,
+    pub opened: Vec<HiringChangePosting>,
+    pub closed: Vec<HiringChangePosting>,
+    pub truncated: bool,
+}

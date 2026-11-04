@@ -1,6 +1,6 @@
 use hydrafetch::{
     BatchOptions, Client, ExtractOptions, Format, Location, RateResultInput, Rating, ScrapeOptions,
-    WaitOptions,
+    SearchJobsOptions, WaitOptions,
 };
 use serde_json::{json, Value};
 use std::time::Duration;
@@ -392,4 +392,64 @@ async fn rate_result_needs_a_target() {
         note: None,
     };
     assert!(hf.rate_result(input).await.is_err());
+}
+
+#[tokio::test]
+async fn search_jobs_posts_the_query_and_returns_the_list() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/v1/web/index/jobs/search"))
+        .respond_with(ok(json!({ "success": true, "data": [{
+            "title": "Data Engineer", "company": null, "domain": "acme.com", "board": "greenhouse",
+            "department": null, "location": "Berlin", "remote": false, "employmentType": null,
+            "postedAt": null, "firstSeenAt": "2026-11-01T00:00:00Z", "url": null,
+            "applyUrl": null, "pay": { "min": 70000, "max": null, "currency": "EUR", "interval": "year" }
+        }] })))
+        .mount(&server)
+        .await;
+    let hf = client_for(&server).await;
+    let options = SearchJobsOptions {
+        location: Some("Berlin".to_string()),
+        limit: Some(20),
+        ..Default::default()
+    };
+    let jobs = hf
+        .search_jobs("data engineer", Some(options))
+        .await
+        .unwrap();
+    assert_eq!(jobs.len(), 1);
+    assert_eq!(jobs[0].pay.as_ref().unwrap().min, Some(70000.0));
+    let requests = server.received_requests().await.unwrap();
+    let body: Value = requests[0].body_json().unwrap();
+    assert_eq!(
+        body,
+        json!({ "query": "data engineer", "location": "Berlin", "limit": 20 })
+    );
+}
+
+#[tokio::test]
+async fn hiring_changes_sends_the_domains_and_since() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/v1/web/index/jobs/changes"))
+        .respond_with(ok(json!({ "success": true, "data": [{
+            "domain": "acme.com", "company": "Acme", "lastReadAt": null, "since": "2026-10-01",
+            "totals": { "open": 4, "opened": 2, "closed": 1 },
+            "byDepartment": {}, "bySeniority": {}, "byLocation": {},
+            "opened": [], "closed": [], "truncated": false
+        }] })))
+        .mount(&server)
+        .await;
+    let hf = client_for(&server).await;
+    let out = hf
+        .hiring_changes(&["acme.com"], "2026-10-01", None)
+        .await
+        .unwrap();
+    assert_eq!(out[0].totals.opened, 2);
+    let requests = server.received_requests().await.unwrap();
+    let body: Value = requests[0].body_json().unwrap();
+    assert_eq!(
+        body,
+        json!({ "domains": ["acme.com"], "since": "2026-10-01" })
+    );
 }

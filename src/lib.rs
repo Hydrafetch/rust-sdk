@@ -267,6 +267,39 @@ impl Client {
             .await
     }
 
+    /// Finds open jobs by the words in the job title, newest first.
+    pub async fn search_jobs(
+        &self,
+        query: &str,
+        options: Option<SearchJobsOptions>,
+    ) -> Result<Vec<OpenJob>> {
+        let body = Self::merge(json!({ "query": query }), options);
+        self.request(
+            reqwest::Method::POST,
+            "/v1/web/index/jobs/search",
+            Some(body),
+            &[],
+        )
+        .await
+    }
+
+    /// Reports what each company opened and closed since `since`, an ISO 8601 time.
+    pub async fn hiring_changes(
+        &self,
+        domains: &[&str],
+        since: &str,
+        options: Option<HiringChangesOptions>,
+    ) -> Result<Vec<CompanyHiringChanges>> {
+        let body = Self::merge(json!({ "domains": domains, "since": since }), options);
+        self.request(
+            reqwest::Method::POST,
+            "/v1/web/index/jobs/changes",
+            Some(body),
+            &[],
+        )
+        .await
+    }
+
     pub async fn extract(
         &self,
         urls: &[&str],

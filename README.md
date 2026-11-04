@@ -174,6 +174,34 @@ for r in res.results {
 }
 ```
 
+## Jobs
+
+Search open jobs collected from company career sites and hiring platforms, by the words in the job title:
+
+```rust
+use hydrafetch::SearchJobsOptions;
+
+let jobs = hf.search_jobs("data engineer", Some(SearchJobsOptions {
+    location: Some("Berlin".into()),
+    posted_within_days: Some(14),
+    limit: Some(20),
+    ..Default::default()
+})).await?;
+
+for job in &jobs {
+    println!("{} {} {}", job.title, job.domain, job.first_seen_at);
+}
+```
+
+See what changed in a company's hiring since a date: what is open now, what opened and what closed, by department, seniority and location, with the jobs themselves:
+
+```rust
+let changes = hf.hiring_changes(&["acme.com"], "2026-10-01T00:00:00Z", None).await?;
+println!("{} opened, {} closed", changes[0].totals.opened, changes[0].totals.closed);
+```
+
+A search costs 1 credit per 10 jobs returned, and an empty one is free. Hiring changes cost 1 credit per company we have jobs for; companies we do not track yet come back empty and are free.
+
 ## Brand data
 
 ```rust
@@ -256,6 +284,8 @@ let hf = Client::builder()
 | `markdown(url)` | `String` | 1 |
 | `map(url, Option<MapOptions>)` | `MapResult` | 1 |
 | `search(query, Option<SearchOptions>)` | `SearchResult` | 1 + 1 per scraped result |
+| `search_jobs(query, Option<SearchJobsOptions>)` | `Vec<OpenJob>` | 1 per 10 jobs |
+| `hiring_changes(domains, since, Option<HiringChangesOptions>)` | `Vec<CompanyHiringChanges>` | 1 per company with jobs |
 | `extract(urls, Option<ExtractOptions>)` | `ExtractResult` | 5 per URL |
 | `brand(domain)` | `serde_json::Value` | 5 |
 | `logo(domain, Option<LogoOptions>)` | `serde_json::Value` | 1 |

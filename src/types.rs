@@ -454,3 +454,45 @@ pub struct CompanyHiringChanges {
     pub closed: Vec<HiringChangePosting>,
     pub truncated: bool,
 }
+
+/// Narrows a news search. A search costs 1 credit, and one that finds nothing is free.
+#[derive(Debug, Clone, Default, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NewsOptions {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub limit: Option<u32>,
+    /// One of "hour", "day", "week" or "month" (default "week").
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub time_range: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub country: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub include_domains: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub exclude_domains: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub scrape_results: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub scrape_options: Option<ScrapeOptions>,
+}
+
+/// One news article, with the publisher's own URL and when it was published.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NewsArticle {
+    pub title: String,
+    pub url: String,
+    pub source: Option<String>,
+    pub published_at: String,
+    pub snippet: Option<String>,
+    pub image_url: Option<String>,
+    pub data: Option<ScrapeResult>,
+}
+
+/// Articles, newest first. `status` is "ok" or "no_results".
+#[derive(Debug, Clone, Deserialize)]
+pub struct NewsResult {
+    pub query: String,
+    pub status: String,
+    pub results: Vec<NewsArticle>,
+}

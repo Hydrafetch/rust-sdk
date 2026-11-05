@@ -267,6 +267,13 @@ impl Client {
             .await
     }
 
+    /// Finds recent news articles about a query, newest first.
+    pub async fn news(&self, query: &str, options: Option<NewsOptions>) -> Result<NewsResult> {
+        let body = Self::merge(json!({ "query": query }), options);
+        self.request(reqwest::Method::POST, "/v1/web/news", Some(body), &[])
+            .await
+    }
+
     /// Finds open jobs by the words in the job title, newest first.
     pub async fn search_jobs(
         &self,

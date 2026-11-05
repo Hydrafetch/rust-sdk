@@ -1,6 +1,6 @@
 use hydrafetch::{
-    BatchOptions, Client, ExtractOptions, Format, Location, RateResultInput, Rating, ScrapeOptions,
-    SearchJobsOptions, WaitOptions,
+    BatchOptions, Client, ExtractOptions, Format, Location, NewsOptions, RateResultInput, Rating,
+    ScrapeOptions, SearchJobsOptions, WaitOptions,
 };
 use serde_json::{json, Value};
 use std::time::Duration;
@@ -451,5 +451,35 @@ async fn hiring_changes_sends_the_domains_and_since() {
     assert_eq!(
         body,
         json!({ "domains": ["acme.com"], "since": "2026-10-01" })
+    );
+}
+
+#[tokio::test]
+async fn news_posts_the_query_and_window() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/v1/web/news"))
+        .respond_with(ok(json!({ "success": true, "data": {
+            "query": "acme raises", "status": "ok", "results": [{
+                "title": "Acme raises $10M", "url": "https://example.com/a", "source": null,
+                "publishedAt": "2026-11-04T10:00:00Z", "snippet": null, "imageUrl": null, "data": null
+            }]
+        } })))
+        .mount(&server)
+        .await;
+    let hf = client_for(&server).await;
+    let options = NewsOptions {
+        time_range: Some("day".to_string()),
+        limit: Some(5),
+        ..Default::default()
+    };
+    let news = hf.news("acme raises", Some(options)).await.unwrap();
+    assert_eq!(news.status, "ok");
+    assert_eq!(news.results[0].published_at, "2026-11-04T10:00:00Z");
+    let requests = server.received_requests().await.unwrap();
+    let body: Value = requests[0].body_json().unwrap();
+    assert_eq!(
+        body,
+        json!({ "query": "acme raises", "timeRange": "day", "limit": 5 })
     );
 }

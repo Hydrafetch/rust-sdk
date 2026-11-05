@@ -174,6 +174,26 @@ for r in res.results {
 }
 ```
 
+## News
+
+Find recent news articles about anything, newest first, each with its outlet and publish time:
+
+```rust
+use hydrafetch::NewsOptions;
+
+let news = hf.news("acme raises funding", Some(NewsOptions {
+    time_range: Some("week".into()),
+    limit: Some(10),
+    ..Default::default()
+})).await?;
+
+for article in &news.results {
+    println!("{} {} {}", article.published_at, article.title, article.url);
+}
+```
+
+A news search costs 1 credit, and one that finds nothing is free. Set `scrape_results: Some(true)` to also read each article as clean data, at 1 extra credit per article.
+
 ## Jobs
 
 Search open jobs collected from company career sites and hiring platforms, by the words in the job title:
@@ -284,6 +304,7 @@ let hf = Client::builder()
 | `markdown(url)` | `String` | 1 |
 | `map(url, Option<MapOptions>)` | `MapResult` | 1 |
 | `search(query, Option<SearchOptions>)` | `SearchResult` | 1 + 1 per scraped result |
+| `news(query, Option<NewsOptions>)` | `NewsResult` | 1 + 1 per article read; free when empty |
 | `search_jobs(query, Option<SearchJobsOptions>)` | `Vec<OpenJob>` | 1 per 10 jobs |
 | `hiring_changes(domains, since, Option<HiringChangesOptions>)` | `Vec<CompanyHiringChanges>` | 1 per company with jobs |
 | `extract(urls, Option<ExtractOptions>)` | `ExtractResult` | 5 per URL |

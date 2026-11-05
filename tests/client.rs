@@ -483,3 +483,26 @@ async fn news_posts_the_query_and_window() {
         json!({ "query": "acme raises", "timeRange": "day", "limit": 5 })
     );
 }
+
+#[tokio::test]
+async fn map_reads_each_link_with_its_lastmod() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/v1/web/map"))
+        .respond_with(ok(json!({ "success": true, "data": {
+            "url": "https://example.com",
+            "links": [
+                { "url": "https://example.com/a", "lastmod": "2026-10-20T00:00:00.000Z" },
+                { "url": "https://example.com/b", "lastmod": null }
+            ],
+            "count": 2, "total": 53, "truncated": false
+        } })))
+        .mount(&server)
+        .await;
+    let hf = client_for(&server).await;
+    let site = hf.map("https://example.com", None).await.unwrap();
+    assert_eq!(site.links.len(), 2);
+    assert_eq!(site.links[0].url, "https://example.com/a");
+    assert!(site.links[1].lastmod.is_none());
+    assert_eq!(site.total, Some(53));
+}

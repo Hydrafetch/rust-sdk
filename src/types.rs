@@ -105,7 +105,7 @@ pub struct MapOptions {
 #[derive(Debug, Clone, Deserialize)]
 pub struct MapResult {
     pub url: String,
-    pub links: Vec<String>,
+    pub links: Vec<MapLink>,
     pub count: Option<i64>,
     pub total: Option<i64>,
     pub truncated: Option<bool>,
@@ -495,4 +495,11 @@ pub struct NewsResult {
     pub query: String,
     pub status: String,
     pub results: Vec<NewsArticle>,
+}
+
+/// One URL on the site, with when its sitemap says it last changed.
+#[derive(Debug, Clone, Deserialize)]
+pub struct MapLink {
+    pub url: String,
+    pub lastmod: Option<String>,
 }

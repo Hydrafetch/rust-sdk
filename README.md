@@ -120,8 +120,8 @@ let m = hf.map("https://example.com", Some(MapOptions {
 })).await?;
 
 let docs: Vec<&str> = m.links.iter()
+    .map(|link| link.url.as_str())
     .filter(|url| url.contains("/docs/"))
-    .map(String::as_str)
     .collect();
 ```
 

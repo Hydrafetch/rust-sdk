@@ -57,35 +57,17 @@ pub struct ScrapeOptions {
     pub location: Option<Location>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub headers: Option<HashMap<String, String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub method: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub body: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub json_options: Option<Value>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Usage {
-    pub credits_used: Option<i64>,
-    pub credits_remaining: Option<i64>,
-    pub freshness: Option<String>,
-}
+pub type Usage = crate::generated::WebUsageDto;
 
-#[derive(Debug, Clone, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ScrapeResult {
-    pub url: String,
-    pub final_url: Option<String>,
-    pub redirected: Option<bool>,
-    pub status: Option<i64>,
-    pub cached: Option<bool>,
-    pub warning: Option<String>,
-    pub metadata: Option<Value>,
-    pub usage: Option<Usage>,
-    pub markdown: Option<String>,
-    pub html: Option<String>,
-    pub raw_html: Option<String>,
-    pub links: Option<Vec<String>>,
-    pub structured: Option<Value>,
-    pub summary: Option<String>,
-    pub json: Option<Value>,
-}
+pub type ScrapeResult = crate::generated::WebScrapeDataDto;
 
 #[derive(Debug, Clone, Default, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -100,16 +82,21 @@ pub struct MapOptions {
     pub include_subdomains: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ignore_query_parameters: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sitemap: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sitemap_include: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sitemap_exclude: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub order: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub before: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub offset: Option<u32>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
-pub struct MapResult {
-    pub url: String,
-    pub links: Vec<MapLink>,
-    pub count: Option<i64>,
-    pub total: Option<i64>,
-    pub truncated: Option<bool>,
-}
+pub type MapResult = crate::generated::MapResultDto;
 
 #[derive(Debug, Clone, Default, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -126,23 +113,13 @@ pub struct SearchOptions {
     pub include_domains: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub exclude_domains: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub time_range: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
-pub struct SearchItem {
-    pub title: Option<String>,
-    pub url: String,
-    pub snippet: Option<String>,
-    pub rank: Option<i64>,
-    pub data: Option<ScrapeResult>,
-}
+pub type SearchItem = crate::generated::SearchResultItemDto;
 
-#[derive(Debug, Clone, Deserialize)]
-pub struct SearchResult {
-    pub query: String,
-    pub status: Option<String>,
-    pub results: Vec<SearchItem>,
-}
+pub type SearchResult = crate::generated::SearchResultDto;
 
 #[derive(Debug, Clone, Default, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -169,19 +146,9 @@ pub struct ExtractOptions {
     pub headers: Option<HashMap<String, String>>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
-pub struct ExtractItem {
-    pub url: String,
-    pub data: Option<Value>,
-    pub fields: Option<Value>,
-    pub error: Option<String>,
-}
+pub type ExtractItem = crate::generated::ExtractItemResultDto;
 
-#[derive(Debug, Clone, Deserialize)]
-pub struct ExtractResult {
-    pub results: Vec<ExtractItem>,
-    pub sources: Option<Vec<Value>>,
-}
+pub type ExtractResult = crate::generated::ExtractResultDto;
 
 #[derive(Debug, Clone, Default, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -197,50 +164,34 @@ pub struct CrawlOptions {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub allow_subdomains: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub webhook: Option<String>,
+    pub webhook: Option<Webhook>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub scrape_options: Option<ScrapeOptions>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allow_external_links: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ignore_query_parameters: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sitemap: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BatchOptions {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub webhook: Option<String>,
+    pub webhook: Option<Webhook>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub scrape_options: Option<ScrapeOptions>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct JobPage {
-    pub url: String,
-    pub requested_url: Option<String>,
-    pub status: String,
-    pub depth: Option<i64>,
-    pub error: Option<String>,
-    pub error_code: Option<String>,
-    pub retryable: Option<bool>,
-    pub data: Option<ScrapeResult>,
-}
+pub type JobPage = crate::generated::CrawlPageResultDto;
 
-#[derive(Debug, Clone, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Job {
-    pub id: Option<String>,
-    pub kind: Option<String>,
-    pub status: String,
-    pub seed_url: Option<String>,
-    pub total: Option<i64>,
-    pub completed: Option<i64>,
-    pub failed: Option<i64>,
-    pub credits_used: Option<i64>,
-    pub pages: Option<Vec<JobPage>>,
-}
+pub type Job = crate::generated::CrawlStatusResponseDto;
 
-impl Job {
+impl crate::generated::CrawlStatusResponseDto {
     pub fn is_done(&self) -> bool {
-        matches!(self.status.as_str(), "completed" | "failed" | "cancelled")
+        use crate::generated::CrawlStatusResponseDtoStatus as S;
+        matches!(self.status, S::Completed | S::Failed | S::Cancelled)
     }
 }
 
@@ -266,36 +217,19 @@ pub struct ScreenshotOptions {
     pub timeout: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_age: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub viewport: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub viewport_width: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub viewport_height: Option<u32>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ScreenshotResult {
-    pub url: String,
-    pub final_url: Option<String>,
-    pub status: Option<i64>,
-    pub screenshot: String,
-    pub screenshot_type: Option<String>,
-    pub width: Option<i64>,
-    pub height: Option<i64>,
-    pub cached: Option<bool>,
-}
+pub type ScreenshotResult = crate::generated::WebScreenshotDataDto;
 
-#[derive(Debug, Clone, Deserialize)]
-pub struct PageImage {
-    pub src: String,
-    pub alt: Option<String>,
-    pub width: Option<i64>,
-    pub height: Option<i64>,
-}
+pub type PageImage = crate::generated::WebImageDto;
 
-#[derive(Debug, Clone, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ImagesResult {
-    pub url: String,
-    pub final_url: Option<String>,
-    pub images: Vec<PageImage>,
-}
+pub type ImagesResult = crate::generated::WebImagesDataDto;
 
 #[derive(Debug, Clone)]
 pub struct WaitOptions {
@@ -312,12 +246,7 @@ impl Default for WaitOptions {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum Rating {
-    Good,
-    Bad,
-}
+pub type Rating = crate::generated::ResultFeedbackDataDtoRating;
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -355,13 +284,7 @@ impl RateResultInput {
     }
 }
 
-#[derive(Debug, Clone, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct RateResultResponse {
-    pub id: String,
-    pub request_id: String,
-    pub rating: Rating,
-}
+pub type RateResultResponse = crate::generated::ResultFeedbackDataDto;
 
 /// Narrows a jobs search. Each 10 jobs returned cost 1 credit.
 #[derive(Debug, Clone, Default, Serialize)]
@@ -379,34 +302,9 @@ pub struct SearchJobsOptions {
     pub include_descriptions: Option<bool>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
-pub struct JobPay {
-    pub min: Option<f64>,
-    pub max: Option<f64>,
-    pub currency: Option<String>,
-    pub interval: Option<String>,
-}
+pub type JobPay = crate::generated::JobsIndexPayDto;
 
-/// One open job from a company career site or hiring platform.
-#[derive(Debug, Clone, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct OpenJob {
-    pub title: String,
-    pub company: Option<String>,
-    pub domain: String,
-    pub board: String,
-    pub department: Option<String>,
-    pub location: Option<String>,
-    pub remote: Option<bool>,
-    pub employment_type: Option<String>,
-    pub posted_at: Option<String>,
-    pub first_seen_at: String,
-    pub url: Option<String>,
-    pub apply_url: Option<String>,
-    pub pay: Option<JobPay>,
-    #[serde(default)]
-    pub description: Option<String>,
-}
+pub type OpenJob = crate::generated::JobsIndexJobDto;
 
 #[derive(Debug, Clone, Default, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -415,45 +313,11 @@ pub struct HiringChangesOptions {
     pub include_descriptions: Option<bool>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
-pub struct HiringCounts {
-    pub open: u64,
-    pub opened: u64,
-    pub closed: u64,
-}
+pub type HiringCounts = crate::generated::JobsIndexCountsDto;
 
-#[derive(Debug, Clone, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct HiringChangePosting {
-    pub title: String,
-    pub department: Option<String>,
-    pub location: Option<String>,
-    pub seniority: String,
-    pub board: String,
-    pub url: Option<String>,
-    pub posted_at: Option<String>,
-    pub first_seen_at: String,
-    pub closed_at: Option<String>,
-    #[serde(default)]
-    pub description: Option<String>,
-}
+pub type HiringChangePosting = crate::generated::JobsIndexChangePostingDto;
 
-/// What changed in one company's hiring since a date.
-#[derive(Debug, Clone, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct CompanyHiringChanges {
-    pub domain: String,
-    pub company: Option<String>,
-    pub last_read_at: Option<String>,
-    pub since: String,
-    pub totals: HiringCounts,
-    pub by_department: HashMap<String, HiringCounts>,
-    pub by_seniority: HashMap<String, HiringCounts>,
-    pub by_location: HashMap<String, HiringCounts>,
-    pub opened: Vec<HiringChangePosting>,
-    pub closed: Vec<HiringChangePosting>,
-    pub truncated: bool,
-}
+pub type CompanyHiringChanges = crate::generated::JobsIndexCompanyChangesDto;
 
 /// Narrows a news search. A search costs 1 credit, and one that finds nothing is free.
 #[derive(Debug, Clone, Default, Serialize)]
@@ -474,31 +338,20 @@ pub struct NewsOptions {
     pub scrape_results: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub scrape_options: Option<ScrapeOptions>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_age: Option<u64>,
 }
 
-/// One news article, with the publisher's own URL and when it was published.
-#[derive(Debug, Clone, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct NewsArticle {
-    pub title: String,
-    pub url: String,
-    pub source: Option<String>,
-    pub published_at: String,
-    pub snippet: Option<String>,
-    pub data: Option<ScrapeResult>,
-}
+pub type NewsArticle = crate::generated::NewsResultItemDto;
 
-/// Articles, newest first. `status` is "ok" or "no_results".
-#[derive(Debug, Clone, Deserialize)]
-pub struct NewsResult {
-    pub query: String,
-    pub status: String,
-    pub results: Vec<NewsArticle>,
-}
+pub type NewsResult = crate::generated::NewsResultDto;
 
-/// One URL on the site, with when its sitemap says it last changed.
-#[derive(Debug, Clone, Deserialize)]
-pub struct MapLink {
-    pub url: String,
-    pub lastmod: Option<String>,
-}
+pub type MapLink = crate::generated::MapUrlEntryDto;
+
+pub type Webhook = crate::generated::WebhookDto;
+
+pub type BrandResult = crate::generated::WebBrandDataDto;
+
+pub type LogoResult = crate::generated::LogoDescriptionDto;
+
+pub type StyleguideResult = crate::generated::WebStyleguideDataDto;

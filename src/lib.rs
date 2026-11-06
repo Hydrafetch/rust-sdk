@@ -1,4 +1,6 @@
 mod error;
+#[allow(clippy::all)]
+pub mod generated;
 mod types;
 
 pub use error::{Error, Result};
@@ -317,7 +319,7 @@ impl Client {
             .await
     }
 
-    pub async fn brand(&self, domain: &str) -> Result<Value> {
+    pub async fn brand(&self, domain: &str) -> Result<BrandResult> {
         self.request(
             reqwest::Method::GET,
             "/v1/web/brand",
@@ -327,7 +329,7 @@ impl Client {
         .await
     }
 
-    pub async fn logo(&self, domain: &str, options: Option<LogoOptions>) -> Result<Value> {
+    pub async fn logo(&self, domain: &str, options: Option<LogoOptions>) -> Result<LogoResult> {
         let mut query = vec![("domain", domain.to_string())];
         if let Some(opts) = options {
             if let Some(theme) = opts.theme {
@@ -341,7 +343,7 @@ impl Client {
             .await
     }
 
-    pub async fn styleguide(&self, domain_or_url: &str) -> Result<Value> {
+    pub async fn styleguide(&self, domain_or_url: &str) -> Result<StyleguideResult> {
         self.styleguide_with(domain_or_url, StyleguideOptions::default())
             .await
     }
@@ -350,7 +352,7 @@ impl Client {
         &self,
         domain_or_url: &str,
         options: StyleguideOptions,
-    ) -> Result<Value> {
+    ) -> Result<StyleguideResult> {
         let lower = domain_or_url.to_ascii_lowercase();
         let key = if lower.starts_with("http://") || lower.starts_with("https://") {
             "url"

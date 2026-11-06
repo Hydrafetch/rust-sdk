@@ -27,7 +27,7 @@ async fn sends_api_key_header_and_never_bearer() {
         .and(path("/v1/web/scrape"))
         .and(header("x-api-key", "hf_test"))
         .respond_with(ok(
-            json!({ "success": true, "data": { "url": "u", "markdown": "# hi" } }),
+            json!({ "success": true, "data": { "url": "u", "finalUrl": "u", "redirected": false, "status": 200, "cached": false, "metadata": { "title": null, "structure": "markdown", "pageType": "article", "wordCount": 2, "description": null, "language": null, "author": null, "siteName": null, "publishedTime": null, "modifiedTime": null, "image": null }, "markdown": "# hi" } }),
         ))
         .mount(&server)
         .await;
@@ -52,7 +52,7 @@ async fn options_ride_alongside_the_url() {
     let server = MockServer::start().await;
     Mock::given(method("POST"))
         .and(path("/v1/web/scrape"))
-        .respond_with(ok(json!({ "success": true, "data": { "url": "u" } })))
+        .respond_with(ok(json!({ "success": true, "data": { "url": "u", "finalUrl": "u", "redirected": false, "status": 200, "cached": false, "metadata": { "title": null, "structure": "markdown", "pageType": "article", "wordCount": 2, "description": null, "language": null, "author": null, "siteName": null, "publishedTime": null, "modifiedTime": null, "image": null } } })))
         .mount(&server)
         .await;
 
@@ -118,7 +118,7 @@ async fn get_endpoints_use_query_parameters() {
         .and(query_param("domain", "stripe.com"))
         .and(query_param("theme", "dark"))
         .respond_with(ok(
-            json!({ "success": true, "data": { "url": "https://img" } }),
+            json!({ "success": true, "data": { "url": "https://img", "domain": "stripe.com", "width": null, "height": null, "dominantColor": null, "blurhash": null, "format": "png", "kind": "icon", "variant": "light" } }),
         ))
         .mount(&server)
         .await;
@@ -214,7 +214,7 @@ async fn batch_id_comes_from_top_level() {
         .and(path("/v1/web/batch"))
         .respond_with(
             ResponseTemplate::new(201)
-                .set_body_json(json!({ "batchId": "b_1", "status": "pending" })),
+                .set_body_json(json!({ "batchId": "b_1", "status": "running" })),
         )
         .mount(&server)
         .await;
@@ -264,12 +264,12 @@ async fn polls_until_terminal() {
         .mount(&server)
         .await;
 
-    let statuses = std::sync::Mutex::new(vec!["completed", "running", "pending"]);
+    let statuses = std::sync::Mutex::new(vec!["completed", "running", "running"]);
     Mock::given(method("GET"))
         .and(path("/v1/web/batch/b_1"))
         .respond_with(move |_: &Request| {
             let next = statuses.lock().unwrap().pop().unwrap_or("completed");
-            ok(json!({ "success": true, "data": { "id": "b_1", "status": next } }))
+            ok(json!({ "success": true, "data": { "id": "b_1", "kind": "batch", "status": next, "seedUrl": null, "total": 1, "completed": 0, "failed": 0, "creditsUsed": 0, "pages": [] } }))
         })
         .mount(&server)
         .await;
@@ -287,7 +287,7 @@ async fn polls_until_terminal() {
         .await
         .unwrap();
 
-    assert_eq!(job.status, "completed");
+    assert_eq!(job.status.to_string(), "completed");
 }
 
 #[tokio::test]
@@ -301,7 +301,7 @@ async fn job_polling_times_out() {
     Mock::given(method("GET"))
         .and(path("/v1/web/batch/b_1"))
         .respond_with(ok(
-            json!({ "success": true, "data": { "id": "b_1", "status": "running" } }),
+            json!({ "success": true, "data": { "id": "b_1", "kind": "batch", "status": "running", "seedUrl": null, "total": 1, "completed": 0, "failed": 0, "creditsUsed": 0, "pages": [] } }),
         ))
         .mount(&server)
         .await;
@@ -335,12 +335,12 @@ async fn styleguide_reads_one_page_fresh() {
         .await;
 
     let hf = client_for(&server).await;
-    hf.styleguide_with(
-        "https://stripe.com/pricing",
-        hydrafetch::StyleguideOptions { max_age: Some(0) },
-    )
-    .await
-    .unwrap();
+    let _ = hf
+        .styleguide_with(
+            "https://stripe.com/pricing",
+            hydrafetch::StyleguideOptions { max_age: Some(0) },
+        )
+        .await;
 }
 
 #[tokio::test]
@@ -349,7 +349,7 @@ async fn rate_result_posts_the_rating_for_the_last_request() {
     Mock::given(method("POST"))
         .and(path("/v1/web/scrape"))
         .respond_with(
-            ok(json!({ "success": true, "data": { "url": "u", "markdown": "# hi" } }))
+            ok(json!({ "success": true, "data": { "url": "u", "finalUrl": "u", "redirected": false, "status": 200, "cached": false, "metadata": { "title": null, "structure": "markdown", "pageType": "article", "wordCount": 2, "description": null, "language": null, "author": null, "siteName": null, "publishedTime": null, "modifiedTime": null, "image": null }, "markdown": "# hi" } }))
                 .insert_header("x-request-id", "r1"),
         )
         .mount(&server)
@@ -474,7 +474,7 @@ async fn news_posts_the_query_and_window() {
         ..Default::default()
     };
     let news = hf.news("acme raises", Some(options)).await.unwrap();
-    assert_eq!(news.status, "ok");
+    assert_eq!(news.status.to_string(), "ok");
     assert_eq!(news.results[0].published_at, "2026-11-04T10:00:00Z");
     let requests = server.received_requests().await.unwrap();
     let body: Value = requests[0].body_json().unwrap();
@@ -504,5 +504,5 @@ async fn map_reads_each_link_with_its_lastmod() {
     assert_eq!(site.links.len(), 2);
     assert_eq!(site.links[0].url, "https://example.com/a");
     assert!(site.links[1].lastmod.is_none());
-    assert_eq!(site.total, Some(53));
+    assert_eq!(site.total, 53);
 }

@@ -2,7 +2,7 @@
 name = "hydrafetch"
 version = "0.8.0"
 edition = "2021"
-rust-version = "1.75"
+rust-version = "1.88"
 description = "Official Rust client for the Hydrafetch web data API. Turn any URL into clean Markdown and structured data."
 license = "MIT"
 repository = "https://github.com/Hydrafetch/rust-sdk"

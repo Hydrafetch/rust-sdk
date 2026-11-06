@@ -6,7 +6,7 @@
 
 Official Rust client for the [Hydrafetch](https://hydrafetch.com) web data API.
 
-Turn any URL into clean Markdown or schema-shaped JSON. Async, typed, built on `reqwest` and `serde`. Rust 1.75+.
+Turn any URL into clean Markdown or schema-shaped JSON. Async, typed, built on `reqwest` and `serde`. Rust 1.88+.
 
 ## Installation
 

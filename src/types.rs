@@ -485,7 +485,6 @@ pub struct NewsArticle {
     pub source: Option<String>,
     pub published_at: String,
     pub snippet: Option<String>,
-    pub image_url: Option<String>,
     pub data: Option<ScrapeResult>,
 }
 

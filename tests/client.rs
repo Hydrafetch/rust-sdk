@@ -462,7 +462,7 @@ async fn news_posts_the_query_and_window() {
         .respond_with(ok(json!({ "success": true, "data": {
             "query": "acme raises", "status": "ok", "results": [{
                 "title": "Acme raises $10M", "url": "https://example.com/a", "source": null,
-                "publishedAt": "2026-11-04T10:00:00Z", "snippet": null, "imageUrl": null, "data": null
+                "publishedAt": "2026-11-04T10:00:00Z", "snippet": null, "data": null
             }]
         } })))
         .mount(&server)

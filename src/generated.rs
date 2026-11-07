@@ -558,6 +558,139 @@ pub struct BrandSocialDto {
     pub platform: ::std::string::String,
     pub url: ::std::string::String,
 }
+#[doc = "`CallAcceptedDto`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct CallAcceptedDto {
+    #[serde(rename = "jobId")]
+    pub job_id: ::std::string::String,
+    #[doc = "Poll this path until the status is completed or failed."]
+    pub poll: ::std::string::String,
+    pub status: CallAcceptedDtoStatus,
+}
+#[doc = "`CallAcceptedDtoStatus`"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum CallAcceptedDtoStatus {
+    #[serde(rename = "running")]
+    Running,
+}
+impl ::std::fmt::Display for CallAcceptedDtoStatus {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Running => f.write_str("running"),
+        }
+    }
+}
+impl ::std::str::FromStr for CallAcceptedDtoStatus {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "running" => Ok(Self::Running),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for CallAcceptedDtoStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for CallAcceptedDtoStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`CallJobErrorDto`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct CallJobErrorDto {
+    pub code: ::std::string::String,
+    #[serde(default, skip_serializing_if = "::serde_json::Map::is_empty")]
+    pub details: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
+    pub message: ::std::string::String,
+    #[doc = "The HTTP status the call would have answered with."]
+    pub status: f64,
+}
+#[doc = "`CallJobStateDto`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct CallJobStateDto {
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub error: ::std::option::Option<CallJobErrorDto>,
+    #[serde(rename = "jobId")]
+    pub job_id: ::std::string::String,
+    #[doc = "When completed: exactly the body the call returns when it answers in time."]
+    #[serde(default, skip_serializing_if = "::serde_json::Map::is_empty")]
+    pub result: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
+    pub status: CallJobStateDtoStatus,
+}
+#[doc = "`CallJobStateDtoStatus`"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum CallJobStateDtoStatus {
+    #[serde(rename = "running")]
+    Running,
+    #[serde(rename = "completed")]
+    Completed,
+    #[serde(rename = "failed")]
+    Failed,
+}
+impl ::std::fmt::Display for CallJobStateDtoStatus {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Running => f.write_str("running"),
+            Self::Completed => f.write_str("completed"),
+            Self::Failed => f.write_str("failed"),
+        }
+    }
+}
+impl ::std::str::FromStr for CallJobStateDtoStatus {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "running" => Ok(Self::Running),
+            "completed" => Ok(Self::Completed),
+            "failed" => Ok(Self::Failed),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for CallJobStateDtoStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for CallJobStateDtoStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
 #[doc = "`CrawlAcceptedDto`"]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct CrawlAcceptedDto {
@@ -2468,62 +2601,6 @@ impl ::std::convert::TryFrom<::std::string::String> for ResultFeedbackDtoReasons
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct ResultFeedbackResponseDto {
     pub data: ResultFeedbackDataDto,
-}
-#[doc = "`ScrapeAcceptedDto`"]
-#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
-pub struct ScrapeAcceptedDto {
-    #[doc = "Poll this job id at GET /v1/web/scrape/{id}."]
-    #[serde(rename = "jobId")]
-    pub job_id: ::std::string::String,
-    #[doc = "Only returned when the request asked for `async: true`."]
-    pub status: ScrapeAcceptedDtoStatus,
-}
-#[doc = "Only returned when the request asked for `async: true`."]
-#[derive(
-    :: serde :: Deserialize,
-    :: serde :: Serialize,
-    Clone,
-    Copy,
-    Debug,
-    Eq,
-    Hash,
-    Ord,
-    PartialEq,
-    PartialOrd,
-)]
-pub enum ScrapeAcceptedDtoStatus {
-    #[serde(rename = "queued")]
-    Queued,
-}
-impl ::std::fmt::Display for ScrapeAcceptedDtoStatus {
-    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-        match *self {
-            Self::Queued => f.write_str("queued"),
-        }
-    }
-}
-impl ::std::str::FromStr for ScrapeAcceptedDtoStatus {
-    type Err = self::error::ConversionError;
-    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
-        match value {
-            "queued" => Ok(Self::Queued),
-            _ => Err("invalid value".into()),
-        }
-    }
-}
-impl ::std::convert::TryFrom<&str> for ScrapeAcceptedDtoStatus {
-    type Error = self::error::ConversionError;
-    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
-        value.parse()
-    }
-}
-impl ::std::convert::TryFrom<::std::string::String> for ScrapeAcceptedDtoStatus {
-    type Error = self::error::ConversionError;
-    fn try_from(
-        value: ::std::string::String,
-    ) -> ::std::result::Result<Self, self::error::ConversionError> {
-        value.parse()
-    }
 }
 #[doc = "`ScrapeFormatRequestDto`"]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]

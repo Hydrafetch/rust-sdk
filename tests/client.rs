@@ -506,3 +506,73 @@ async fn map_reads_each_link_with_its_lastmod() {
     assert!(site.links[1].lastmod.is_none());
     assert_eq!(site.total, 53);
 }
+
+fn page_json() -> Value {
+    json!({ "url": "u", "finalUrl": "u", "redirected": false, "status": 200, "cached": false, "metadata": { "title": null, "structure": "markdown", "pageType": "article", "wordCount": 2, "description": null, "language": null, "author": null, "siteName": null, "publishedTime": null, "modifiedTime": null, "image": null }, "markdown": "# hi" })
+}
+
+async fn polling_client(server: &MockServer) -> Client {
+    Client::builder()
+        .api_key("hf_test")
+        .base_url(server.uri())
+        .max_retries(0)
+        .job_poll_interval(Duration::from_millis(1))
+        .build()
+        .unwrap()
+}
+
+#[tokio::test]
+async fn a_202_is_followed_until_the_job_completes() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/v1/web/scrape"))
+        .respond_with(ResponseTemplate::new(202).set_body_json(
+            json!({ "jobId": "j-1", "status": "running", "poll": "/v1/web/jobs/j-1" }),
+        ))
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path("/v1/web/jobs/j-1"))
+        .respond_with(ok(
+            json!({ "jobId": "j-1", "status": "completed", "result": { "data": page_json() } }),
+        ))
+        .mount(&server)
+        .await;
+
+    let page = polling_client(&server)
+        .await
+        .scrape("https://example.com", None)
+        .await
+        .unwrap();
+    assert_eq!(page.markdown.as_deref(), Some("# hi"));
+}
+
+#[tokio::test]
+async fn a_failed_job_returns_the_error_the_call_would_have() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/v1/web/scrape"))
+        .respond_with(ResponseTemplate::new(202).set_body_json(
+            json!({ "jobId": "j-1", "status": "running", "poll": "/v1/web/jobs/j-1" }),
+        ))
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path("/v1/web/jobs/j-1"))
+        .respond_with(ok(json!({ "jobId": "j-1", "status": "failed", "error": { "code": "SERVICE_UNAVAILABLE", "message": "walled", "status": 503 } })))
+        .mount(&server)
+        .await;
+
+    let err = polling_client(&server)
+        .await
+        .scrape("https://example.com", None)
+        .await
+        .unwrap_err();
+    match err {
+        hydrafetch::Error::Api { code, status, .. } => {
+            assert_eq!(code, "SERVICE_UNAVAILABLE");
+            assert_eq!(status, 503);
+        }
+        other => panic!("unexpected {other:?}"),
+    }
+}

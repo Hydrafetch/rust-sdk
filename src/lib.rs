@@ -12,6 +12,9 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 const DEFAULT_BASE_URL: &str = "https://api.hydrafetch.com";
+const ACCEPTED: u16 = 202;
+const CALL_JOB_TIMEOUT: Duration = Duration::from_secs(330);
+const CALL_JOB_POLL: Duration = Duration::from_secs(2);
 
 #[derive(Deserialize)]
 struct ApiError {
@@ -31,6 +34,23 @@ struct Envelope {
     data: Option<Value>,
     error: Option<ApiError>,
     meta: Option<Meta>,
+    poll: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct CallJobError {
+    code: Option<String>,
+    message: Option<String>,
+    status: Option<u16>,
+}
+
+#[derive(Deserialize)]
+struct CallJob {
+    #[serde(rename = "jobId")]
+    job_id: Option<String>,
+    status: String,
+    result: Option<Value>,
+    error: Option<CallJobError>,
 }
 
 pub struct ClientBuilder {
@@ -38,6 +58,7 @@ pub struct ClientBuilder {
     base_url: String,
     timeout: Duration,
     max_retries: u32,
+    job_poll: Duration,
 }
 
 impl ClientBuilder {
@@ -61,6 +82,11 @@ impl ClientBuilder {
         self
     }
 
+    pub fn job_poll_interval(mut self, d: Duration) -> Self {
+        self.job_poll = d;
+        self
+    }
+
     pub fn build(self) -> Result<Client> {
         let api_key = self
             .api_key
@@ -78,6 +104,7 @@ impl ClientBuilder {
             base_url: self.base_url,
             http,
             max_retries: self.max_retries,
+            job_poll: self.job_poll,
             last_request_id: Arc::new(Mutex::new(None)),
         })
     }
@@ -89,6 +116,7 @@ pub struct Client {
     base_url: String,
     http: reqwest::Client,
     max_retries: u32,
+    job_poll: Duration,
     last_request_id: Arc<Mutex<Option<String>>>,
 }
 
@@ -99,6 +127,7 @@ impl Client {
             base_url: DEFAULT_BASE_URL.to_string(),
             timeout: Duration::from_secs(120),
             max_retries: 2,
+            job_poll: CALL_JOB_POLL,
         }
     }
 
@@ -194,11 +223,72 @@ impl Client {
                 continue;
             }
 
+            if status == ACCEPTED {
+                if let Some(poll) = envelope.as_ref().and_then(|e| e.poll.clone()) {
+                    let payload = self.follow_call_job(&poll).await?;
+                    return Ok(serde_json::from_value(payload)?);
+                }
+            }
             let payload = match envelope.and_then(|e| e.data) {
                 Some(data) => data,
                 None => serde_json::from_str(&text)?,
             };
             return Ok(serde_json::from_value(payload)?);
+        }
+    }
+
+    async fn follow_call_job(&self, poll: &str) -> Result<Value> {
+        let url = format!("{}{}", self.base_url, poll);
+        let started = Instant::now();
+        loop {
+            tokio::time::sleep(self.job_poll).await;
+            let response = self
+                .http
+                .get(&url)
+                .header("X-API-Key", &self.api_key)
+                .header("Accept", "application/json")
+                .send()
+                .await
+                .map_err(Error::Transport)?;
+            let status = response.status().as_u16();
+            let text = response.text().await.map_err(Error::Transport)?;
+            if status >= 400 {
+                return Err(Error::Api {
+                    code: format!("HTTP_{status}"),
+                    message: text.chars().take(300).collect(),
+                    status,
+                    request_id: None,
+                });
+            }
+            let job: CallJob = serde_json::from_str(&text)?;
+            match job.status.as_str() {
+                "completed" => {
+                    let result = job.result.unwrap_or(Value::Null);
+                    return Ok(match result.get("data") {
+                        Some(data) => data.clone(),
+                        None => result,
+                    });
+                }
+                "failed" => {
+                    let err = job.error.unwrap_or(CallJobError {
+                        code: None,
+                        message: None,
+                        status: None,
+                    });
+                    return Err(Error::Api {
+                        code: err.code.unwrap_or_else(|| "JOB_FAILED".to_string()),
+                        message: err.message.unwrap_or_else(|| "The job failed.".to_string()),
+                        status: err.status.unwrap_or(500),
+                        request_id: job.job_id,
+                    });
+                }
+                _ => {}
+            }
+            if started.elapsed() + self.job_poll > CALL_JOB_TIMEOUT {
+                return Err(Error::Timeout(format!(
+                    "the job did not finish in time; poll {poll} for its result"
+                )));
+            }
         }
     }
 

@@ -74,6 +74,23 @@ pub struct BatchRequestDto {
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub webhook: ::std::option::Option<WebhookDto>,
 }
+#[doc = "`BrandAddressDto`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct BrandAddressDto {
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub city: ::std::option::Option<::std::string::String>,
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub country: ::std::option::Option<::std::string::String>,
+    #[serde(
+        rename = "postalCode",
+        deserialize_with = "::std::option::Option::deserialize"
+    )]
+    pub postal_code: ::std::option::Option<::std::string::String>,
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub region: ::std::option::Option<::std::string::String>,
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub street: ::std::option::Option<::std::string::String>,
+}
 #[doc = "`BrandAssetDto`"]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct BrandAssetDto {
@@ -295,10 +312,10 @@ impl ::std::convert::TryFrom<::std::string::String> for BrandColorDtoRole {
 pub struct BrandFieldProvenanceDto {
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub confidence: ::std::option::Option<f64>,
-    #[doc = "`declared` the site said it in its own markup. `harvested` we processed an asset or read its CSS. `inferred` a model produced it from the page. `external` an enrichment source rather than the site."]
+    #[doc = "`declared` the site said it in its own markup. `harvested` we processed an asset or read its CSS. `inferred` we worked it out rather than read it, such as a name taken from the domain. `external` an enrichment source rather than the site."]
     pub source: BrandFieldProvenanceDtoSource,
 }
-#[doc = "`declared` the site said it in its own markup. `harvested` we processed an asset or read its CSS. `inferred` a model produced it from the page. `external` an enrichment source rather than the site."]
+#[doc = "`declared` the site said it in its own markup. `harvested` we processed an asset or read its CSS. `inferred` we worked it out rather than read it, such as a name taken from the domain. `external` an enrichment source rather than the site."]
 #[derive(
     :: serde :: Deserialize,
     :: serde :: Serialize,
@@ -1653,7 +1670,7 @@ impl<'de> ::serde::Deserialize<'de> for JsonOptionsDtoPrompt {
 #[doc = "`LocationDto`"]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug, Default)]
 pub struct LocationDto {
-    #[doc = "ISO 3166 alpha-2 country to fetch the page as if from."]
+    #[doc = "Two-letter country to read the page from: `us` or `de`. Any other country is refused with a 400 that lists the supported codes."]
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub country: ::std::option::Option<::std::string::String>,
     #[doc = "Preferred content languages, most-preferred first."]
@@ -2339,16 +2356,6 @@ pub struct NewsResultItemDto {
     #[doc = "The article's address on the publisher's own site."]
     pub url: ::std::string::String,
 }
-#[doc = "`OptLocationDto`"]
-#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug, Default)]
-pub struct OptLocationDto {
-    #[doc = "ISO 3166 alpha-2 country to fetch as if from."]
-    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
-    pub country: ::std::option::Option<::std::string::String>,
-    #[doc = "Preferred content languages, most-preferred first."]
-    #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
-    pub languages: ::std::vec::Vec<::std::string::String>,
-}
 #[doc = "`ResultFeedbackDataDto`"]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct ResultFeedbackDataDto {
@@ -2611,7 +2618,7 @@ pub struct ScrapeFormatRequestDto {
         skip_serializing_if = "::std::option::Option::is_none"
     )]
     pub async_: ::std::option::Option<bool>,
-    #[doc = "Remove common ad and tracking elements. Default true."]
+    #[doc = "Remove ads and tracking elements. Default true."]
     #[serde(
         rename = "blockAds",
         skip_serializing_if = "::std::option::Option::is_none"
@@ -2626,6 +2633,18 @@ pub struct ScrapeFormatRequestDto {
         skip_serializing_if = "::std::option::Option::is_none"
     )]
     pub cache_only: ::std::option::Option<bool>,
+    #[doc = "Remove cookie and consent banners. Default true. Set false to keep them; a banner the site adds with scripts after load is kept only when the page is rendered."]
+    #[serde(
+        rename = "dismissCookies",
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub dismiss_cookies: ::std::option::Option<bool>,
+    #[doc = "Close newsletter and promotion popups when the page is rendered. Default true. Set false to keep them."]
+    #[serde(
+        rename = "dismissPopups",
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub dismiss_popups: ::std::option::Option<bool>,
     #[doc = "CSS selectors to strip before extraction."]
     #[serde(
         rename = "excludeTags",
@@ -2681,6 +2700,9 @@ pub struct ScrapeFormatRequestDto {
         skip_serializing_if = "::std::option::Option::is_none"
     )]
     pub remove_base64_images: ::std::option::Option<bool>,
+    #[doc = "Always read the page in a browser, as a visitor sees it once its scripts have run. Default false: the page is read in a browser only when its HTML is not enough. Combine with dismissCookies and dismissPopups set to false to keep what scripts add after load."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub render: ::std::option::Option<bool>,
     #[doc = "Persist the capture for later re-extraction. Default true."]
     #[serde(
         rename = "storeInCache",
@@ -2808,12 +2830,24 @@ impl ::std::default::Default for ScrapeFormatRequestDtoMethod {
 #[doc = "`ScrapeOptionsDto`"]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug, Default)]
 pub struct ScrapeOptionsDto {
-    #[doc = "Remove common ad and tracking elements. Default true."]
+    #[doc = "Remove ads and tracking elements. Default true."]
     #[serde(
         rename = "blockAds",
         skip_serializing_if = "::std::option::Option::is_none"
     )]
     pub block_ads: ::std::option::Option<bool>,
+    #[doc = "Remove cookie and consent banners. Default true. Set false to keep them; a banner the site adds with scripts after load is kept only when the page is rendered."]
+    #[serde(
+        rename = "dismissCookies",
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub dismiss_cookies: ::std::option::Option<bool>,
+    #[doc = "Close newsletter and promotion popups when the page is rendered. Default true. Set false to keep them."]
+    #[serde(
+        rename = "dismissPopups",
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub dismiss_popups: ::std::option::Option<bool>,
     #[doc = "CSS selectors to strip before extraction."]
     #[serde(
         rename = "excludeTags",
@@ -2844,7 +2878,7 @@ pub struct ScrapeOptionsDto {
     )]
     pub include_tags: ::std::vec::Vec<::std::string::String>,
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
-    pub location: ::std::option::Option<OptLocationDto>,
+    pub location: ::std::option::Option<LocationDto>,
     #[doc = "Serve a page from cache if younger than this many milliseconds."]
     #[serde(
         rename = "maxAge",
@@ -2869,6 +2903,9 @@ pub struct ScrapeOptionsDto {
         skip_serializing_if = "::std::option::Option::is_none"
     )]
     pub remove_base64_images: ::std::option::Option<bool>,
+    #[doc = "Always read the page in a browser, as a visitor sees it once its scripts have run. Default false: the page is read in a browser only when its HTML is not enough. Combine with dismissCookies and dismissPopups set to false to keep what scripts add after load."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub render: ::std::option::Option<bool>,
     #[doc = "Per-page time budget, in milliseconds."]
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub timeout: ::std::option::Option<i64>,
@@ -2951,7 +2988,7 @@ pub struct ScrapeRequestDto {
         skip_serializing_if = "::std::option::Option::is_none"
     )]
     pub async_: ::std::option::Option<bool>,
-    #[doc = "Remove common ad and tracking elements. Default true."]
+    #[doc = "Remove ads and tracking elements. Default true."]
     #[serde(
         rename = "blockAds",
         skip_serializing_if = "::std::option::Option::is_none"
@@ -2966,6 +3003,18 @@ pub struct ScrapeRequestDto {
         skip_serializing_if = "::std::option::Option::is_none"
     )]
     pub cache_only: ::std::option::Option<bool>,
+    #[doc = "Remove cookie and consent banners. Default true. Set false to keep them; a banner the site adds with scripts after load is kept only when the page is rendered."]
+    #[serde(
+        rename = "dismissCookies",
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub dismiss_cookies: ::std::option::Option<bool>,
+    #[doc = "Close newsletter and promotion popups when the page is rendered. Default true. Set false to keep them."]
+    #[serde(
+        rename = "dismissPopups",
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub dismiss_popups: ::std::option::Option<bool>,
     #[doc = "CSS selectors to strip before extraction."]
     #[serde(
         rename = "excludeTags",
@@ -3030,6 +3079,9 @@ pub struct ScrapeRequestDto {
         skip_serializing_if = "::std::option::Option::is_none"
     )]
     pub remove_base64_images: ::std::option::Option<bool>,
+    #[doc = "Always read the page in a browser, as a visitor sees it once its scripts have run. Default false: the page is read in a browser only when its HTML is not enough. Combine with dismissCookies and dismissPopups set to false to keep what scripts add after load."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub render: ::std::option::Option<bool>,
     #[doc = "Persist the capture for later re-extraction. Default true."]
     #[serde(
         rename = "storeInCache",
@@ -3308,6 +3360,18 @@ impl ::std::convert::TryFrom<::std::string::String> for ScrapeStatusResponseDtoS
 #[doc = "`ScreenshotRequestDto`"]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct ScreenshotRequestDto {
+    #[doc = "Accept cookie and consent banners before the capture. Default true. Set false to capture them."]
+    #[serde(
+        rename = "dismissCookies",
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub dismiss_cookies: ::std::option::Option<bool>,
+    #[doc = "Clear popups and overlays covering the page before the capture. Default true. Set false to capture them."]
+    #[serde(
+        rename = "dismissPopups",
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub dismiss_popups: ::std::option::Option<bool>,
     #[doc = "Capture the entire scrollable page instead of just the viewport. Default off."]
     #[serde(
         rename = "fullPage",
@@ -4247,6 +4311,9 @@ impl ::std::convert::TryFrom<::std::string::String> for StyleguideWebfontDtoType
 #[doc = "`WebBrandDataDto`"]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct WebBrandDataDto {
+    #[doc = "The address the site publishes for the company."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub address: ::std::option::Option<BrandAddressDto>,
     #[doc = "Only when this brand is known by more than its canonical domain."]
     #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
     pub aliases: ::std::vec::Vec<::std::string::String>,
@@ -4259,17 +4326,32 @@ pub struct WebBrandDataDto {
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub email: ::std::option::Option<::std::string::String>,
     pub fonts: ::std::vec::Vec<BrandFontDto>,
+    #[doc = "The year the site says the company was founded."]
+    #[serde(
+        rename = "foundedYear",
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub founded_year: ::std::option::Option<f64>,
     #[serde(
         rename = "legalName",
         skip_serializing_if = "::std::option::Option::is_none"
     )]
     pub legal_name: ::std::option::Option<::std::string::String>,
     pub links: BrandLinksDto,
+    #[doc = "The site's own meta description, word for word."]
+    #[serde(
+        rename = "metaDescription",
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub meta_description: ::std::option::Option<::std::string::String>,
     #[doc = "Industry, as a real NAICS code rather than a phrase nobody can group on."]
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub naics: ::std::option::Option<BrandNaicsDto>,
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub name: ::std::option::Option<::std::string::String>,
+    #[doc = "A phone number the site publishes for the company."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub phone: ::std::option::Option<::std::string::String>,
     #[doc = "Only when you asked for a different domain that resolved here."]
     #[serde(
         rename = "queriedDomain",

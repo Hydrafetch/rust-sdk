@@ -48,6 +48,12 @@ pub struct ScrapeOptions {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub block_ads: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub dismiss_cookies: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dismiss_popups: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub render: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub include_links: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub wait_for: Option<u64>,
@@ -223,6 +229,10 @@ pub struct ScreenshotOptions {
     pub viewport_width: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub viewport_height: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dismiss_cookies: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dismiss_popups: Option<bool>,
 }
 
 pub type ScreenshotResult = crate::generated::WebScreenshotDataDto;

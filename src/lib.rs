@@ -151,6 +151,7 @@ impl Client {
         query: &[(&str, String)],
     ) -> Result<T> {
         let url = format!("{}{}", self.base_url, path);
+        let idempotency_key = (method == reqwest::Method::POST).then(idempotency_key);
         let mut attempt = 0;
 
         loop {
@@ -159,6 +160,9 @@ impl Client {
                 .request(method.clone(), &url)
                 .header("X-API-Key", &self.api_key)
                 .header("Accept", "application/json");
+            if let Some(key) = &idempotency_key {
+                req = req.header("Idempotency-Key", key);
+            }
 
             if !query.is_empty() {
                 req = req.query(query);
@@ -615,6 +619,16 @@ fn job_id(payload: &Value, key: &str) -> Result<String> {
         request_id: None,
         retry_after: None,
     })
+}
+
+fn idempotency_key() -> String {
+    use std::hash::BuildHasher;
+    let seed = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_or(0, |d| d.as_nanos());
+    let high = std::collections::hash_map::RandomState::new().hash_one(seed);
+    let low = std::collections::hash_map::RandomState::new().hash_one(seed);
+    format!("{high:016x}{low:016x}")
 }
 
 fn retry_hint(details: Option<&Value>) -> Option<u64> {

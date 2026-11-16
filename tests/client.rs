@@ -632,3 +632,49 @@ async fn returns_at_once_when_the_server_asks_for_a_long_wait() {
     assert_eq!(err.retry_after(), Some(900));
     assert_eq!(server.received_requests().await.unwrap().len(), 1);
 }
+
+#[tokio::test]
+async fn reuses_one_idempotency_key_across_retries_of_a_post() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/v1/web/map"))
+        .respond_with(
+            ResponseTemplate::new(503)
+                .set_body_json(json!({ "success": false, "error": { "message": "busy" } })),
+        )
+        .up_to_n_times(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/v1/web/map"))
+        .respond_with(ok(json!({ "success": true, "data": { "url": "u", "links": [], "count": 0, "total": 0, "truncated": false } })))
+        .mount(&server)
+        .await;
+
+    retrying_client(&server)
+        .map("https://example.com", None)
+        .await
+        .unwrap();
+    retrying_client(&server)
+        .map("https://example.com", None)
+        .await
+        .unwrap();
+
+    let keys: Vec<String> = server
+        .received_requests()
+        .await
+        .unwrap()
+        .iter()
+        .map(|r| {
+            r.headers
+                .get("idempotency-key")
+                .unwrap()
+                .to_str()
+                .unwrap()
+                .to_string()
+        })
+        .collect();
+    assert_eq!(keys.len(), 3);
+    assert_eq!(keys[0], keys[1]);
+    assert_ne!(keys[1], keys[2]);
+}

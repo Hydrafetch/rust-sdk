@@ -71,7 +71,9 @@ impl Error {
     }
 
     pub fn is_retryable(&self) -> bool {
-        matches!(self.status(), Some(429)) || matches!(self.status(), Some(s) if s >= 500)
+        matches!(self.status(), Some(429))
+            || matches!(self.status(), Some(s) if s >= 500)
+            || self.code() == "IDEMPOTENCY_IN_PROGRESS"
     }
 
     pub fn is_timeout(&self) -> bool {

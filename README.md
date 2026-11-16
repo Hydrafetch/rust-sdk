@@ -263,7 +263,7 @@ match hf.scrape(url, None).await {
     Err(e) if e.is_auth() => refresh_key(),
     Err(e) if e.is_out_of_credits() => top_up(),
     Err(e) if e.is_invalid_request() => report(&e),
-    Err(e) if e.is_retryable() => enqueue(url),
+    Err(e) if e.is_retryable() => enqueue(url, e.retry_after()),
     Err(e) if e.is_timeout() => return Err(e.into()),
     Err(e) => {
         eprintln!("{} {:?} {:?}", e.code(), e.status(), e.request_id());
@@ -278,8 +278,10 @@ match hf.scrape(url, None).await {
 | 401, 403 | invalid or missing key | no |
 | 402 | out of credits | no |
 | 404 | page does not exist | no |
-| 429 | rate limited | yes, twice with backoff |
-| 5xx | upstream failure | yes, twice with backoff |
+| 429 | rate limited | yes, twice |
+| 5xx | upstream failure | yes, twice |
+
+Retries wait as long as the response asks through `Retry-After` or `retryAfterSeconds`, and otherwise back off with jitter. When the response asks for more than 30 seconds the client does not wait; it returns the error at once and `e.retry_after()` gives the seconds to wait before asking again. A job the client is following survives a dropped connection while it polls.
 
 A 503 from `scrape` means the origin is unreachable, usually a dead domain or a broken certificate.
 

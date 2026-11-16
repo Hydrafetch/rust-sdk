@@ -576,3 +576,59 @@ async fn a_failed_job_returns_the_error_the_call_would_have() {
         other => panic!("unexpected {other:?}"),
     }
 }
+
+fn retrying_client(server: &MockServer) -> Client {
+    Client::builder()
+        .api_key("hf_test")
+        .base_url(server.uri())
+        .max_retries(2)
+        .build()
+        .unwrap()
+}
+
+#[tokio::test]
+async fn waits_for_the_retry_after_header_before_retrying() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/v1/web/map"))
+        .respond_with(
+            ResponseTemplate::new(429)
+                .insert_header("Retry-After", "1")
+                .set_body_json(json!({ "success": false, "error": { "code": "TOO_MANY_REQUESTS", "message": "slow down" } })),
+        )
+        .up_to_n_times(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/v1/web/map"))
+        .respond_with(ok(json!({ "success": true, "data": { "url": "u", "links": [], "count": 0, "total": 0, "truncated": false } })))
+        .mount(&server)
+        .await;
+
+    let started = std::time::Instant::now();
+    let result = retrying_client(&server)
+        .map("https://example.com", None)
+        .await;
+    assert!(result.is_ok(), "{result:?}");
+    assert!(started.elapsed() >= Duration::from_millis(950));
+}
+
+#[tokio::test]
+async fn returns_at_once_when_the_server_asks_for_a_long_wait() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/v1/web/map"))
+        .respond_with(ResponseTemplate::new(503).set_body_json(json!({
+            "success": false,
+            "error": { "code": "SERVICE_UNAVAILABLE", "message": "later", "details": { "retryAfterSeconds": 900 } }
+        })))
+        .mount(&server)
+        .await;
+
+    let err = retrying_client(&server)
+        .map("https://example.com", None)
+        .await
+        .unwrap_err();
+    assert_eq!(err.retry_after(), Some(900));
+    assert_eq!(server.received_requests().await.unwrap().len(), 1);
+}

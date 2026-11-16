@@ -8,6 +8,7 @@ pub enum Error {
         message: String,
         status: u16,
         request_id: Option<String>,
+        retry_after: Option<u64>,
     },
 
     #[error("hydrafetch: {0}")]
@@ -46,6 +47,13 @@ impl Error {
     pub fn request_id(&self) -> Option<&str> {
         match self {
             Error::Api { request_id, .. } => request_id.as_deref(),
+            _ => None,
+        }
+    }
+
+    pub fn retry_after(&self) -> Option<u64> {
+        match self {
+            Error::Api { retry_after, .. } => *retry_after,
             _ => None,
         }
     }

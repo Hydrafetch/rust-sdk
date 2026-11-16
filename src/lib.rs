@@ -15,11 +15,15 @@ const DEFAULT_BASE_URL: &str = "https://api.hydrafetch.com";
 const ACCEPTED: u16 = 202;
 const CALL_JOB_TIMEOUT: Duration = Duration::from_secs(330);
 const CALL_JOB_POLL: Duration = Duration::from_secs(2);
+const MAX_RETRY_WAIT_S: u64 = 30;
+const BACKOFF_BASE_MS: u64 = 250;
+const BACKOFF_CAP_MS: u64 = 8_000;
 
 #[derive(Deserialize)]
 struct ApiError {
     code: Option<String>,
     message: Option<String>,
+    details: Option<Value>,
 }
 
 #[derive(Deserialize)]
@@ -181,6 +185,11 @@ impl Client {
             };
 
             let status = response.status().as_u16();
+            let header_wait = response
+                .headers()
+                .get("retry-after")
+                .and_then(|v| v.to_str().ok())
+                .and_then(|v| v.trim().parse::<u64>().ok());
             if let Some(id) = response
                 .headers()
                 .get("x-request-id")
@@ -201,25 +210,34 @@ impl Client {
                     .unwrap_or(false);
 
             if failed {
-                let (code, message, request_id) = match envelope {
+                let (code, message, request_id, body_wait) = match envelope {
                     Some(env) => (
                         env.error.as_ref().and_then(|e| e.code.clone()),
                         env.error.as_ref().and_then(|e| e.message.clone()),
                         env.meta.and_then(|m| m.request_id),
+                        env.error
+                            .as_ref()
+                            .and_then(|e| retry_hint(e.details.as_ref())),
                     ),
-                    None => (None, None, None),
+                    None => (None, None, None, None),
                 };
                 let err = Error::Api {
                     code: code.unwrap_or_else(|| format!("HTTP_{status}")),
                     message: message.unwrap_or_else(|| text.chars().take(300).collect()),
                     status,
                     request_id,
+                    retry_after: header_wait.or(body_wait),
                 };
                 if !err.is_retryable() || attempt >= self.max_retries {
                     return Err(err);
                 }
+                let wait = match err.retry_after() {
+                    Some(s) if s > MAX_RETRY_WAIT_S => return Err(err),
+                    Some(s) => Duration::from_secs(s),
+                    None => backoff_delay(attempt + 1),
+                };
                 attempt += 1;
-                backoff(attempt).await;
+                tokio::time::sleep(wait).await;
                 continue;
             }
 
@@ -240,24 +258,38 @@ impl Client {
     async fn follow_call_job(&self, poll: &str) -> Result<Value> {
         let url = format!("{}{}", self.base_url, poll);
         let started = Instant::now();
+        let mut blips = 0;
         loop {
             tokio::time::sleep(self.job_poll).await;
-            let response = self
-                .http
-                .get(&url)
-                .header("X-API-Key", &self.api_key)
-                .header("Accept", "application/json")
-                .send()
-                .await
-                .map_err(Error::Transport)?;
-            let status = response.status().as_u16();
-            let text = response.text().await.map_err(Error::Transport)?;
+            let read = async {
+                let response = self
+                    .http
+                    .get(&url)
+                    .header("X-API-Key", &self.api_key)
+                    .header("Accept", "application/json")
+                    .send()
+                    .await?;
+                let status = response.status().as_u16();
+                Ok::<_, reqwest::Error>((status, response.text().await?))
+            };
+            let (status, text) = match read.await {
+                Ok(read) => {
+                    blips = 0;
+                    read
+                }
+                Err(e) if blips < self.max_retries && !e.is_timeout() => {
+                    blips += 1;
+                    continue;
+                }
+                Err(e) => return Err(Error::Transport(e)),
+            };
             if status >= 400 {
                 return Err(Error::Api {
                     code: format!("HTTP_{status}"),
                     message: text.chars().take(300).collect(),
                     status,
                     request_id: None,
+                    retry_after: None,
                 });
             }
             let job: CallJob = serde_json::from_str(&text)?;
@@ -280,6 +312,7 @@ impl Client {
                         message: err.message.unwrap_or_else(|| "The job failed.".to_string()),
                         status: err.status.unwrap_or(500),
                         request_id: job.job_id,
+                        retry_after: None,
                     });
                 }
                 _ => {}
@@ -317,6 +350,7 @@ impl Client {
                 message: "pass request_id or url to say which result you are rating".to_string(),
                 status: 400,
                 request_id: None,
+                retry_after: None,
             });
         }
         let body = serde_json::to_value(input)?;
@@ -579,9 +613,25 @@ fn job_id(payload: &Value, key: &str) -> Result<String> {
         message: "job accepted but returned no id".into(),
         status: 502,
         request_id: None,
+        retry_after: None,
     })
 }
 
+fn retry_hint(details: Option<&Value>) -> Option<u64> {
+    let details = details?;
+    ["retryAfterSeconds", "retryAfter"]
+        .iter()
+        .find_map(|k| details.get(k).and_then(Value::as_u64))
+}
+
+fn backoff_delay(attempt: u32) -> Duration {
+    let ceiling = (BACKOFF_BASE_MS << attempt.min(5)).min(BACKOFF_CAP_MS);
+    let noise = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_or(0, |d| u64::from(d.subsec_nanos()));
+    Duration::from_millis(noise % (ceiling + 1))
+}
+
 async fn backoff(attempt: u32) {
-    tokio::time::sleep(Duration::from_millis(250 * 2u64.pow(attempt.min(5)))).await;
+    tokio::time::sleep(backoff_delay(attempt)).await;
 }

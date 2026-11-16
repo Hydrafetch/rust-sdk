@@ -1765,7 +1765,7 @@ pub struct MapRequestDto {
         skip_serializing_if = "::std::option::Option::is_none"
     )]
     pub ignore_query_parameters: ::std::option::Option<bool>,
-    #[doc = "Also include same-site links found on the starting page, not just the site's page list."]
+    #[doc = "Also include same-site links found on the starting page, not just the site's page list. A site with no page list gets them either way."]
     #[serde(
         rename = "includeLinks",
         skip_serializing_if = "::std::option::Option::is_none"
@@ -4422,6 +4422,10 @@ pub enum WebErrorBodyCode {
     WorkspaceBanned,
     #[serde(rename = "NOT_FOUND")]
     NotFound,
+    #[serde(rename = "IDEMPOTENCY_IN_PROGRESS")]
+    IdempotencyInProgress,
+    #[serde(rename = "IDEMPOTENCY_KEY_REUSED")]
+    IdempotencyKeyReused,
     #[serde(rename = "TOO_MANY_REQUESTS")]
     TooManyRequests,
     #[serde(rename = "UPSTREAM_UNREACHABLE")]
@@ -4441,6 +4445,8 @@ impl ::std::fmt::Display for WebErrorBodyCode {
             Self::Forbidden => f.write_str("FORBIDDEN"),
             Self::WorkspaceBanned => f.write_str("WORKSPACE_BANNED"),
             Self::NotFound => f.write_str("NOT_FOUND"),
+            Self::IdempotencyInProgress => f.write_str("IDEMPOTENCY_IN_PROGRESS"),
+            Self::IdempotencyKeyReused => f.write_str("IDEMPOTENCY_KEY_REUSED"),
             Self::TooManyRequests => f.write_str("TOO_MANY_REQUESTS"),
             Self::UpstreamUnreachable => f.write_str("UPSTREAM_UNREACHABLE"),
             Self::ServiceUnavailable => f.write_str("SERVICE_UNAVAILABLE"),
@@ -4459,6 +4465,8 @@ impl ::std::str::FromStr for WebErrorBodyCode {
             "FORBIDDEN" => Ok(Self::Forbidden),
             "WORKSPACE_BANNED" => Ok(Self::WorkspaceBanned),
             "NOT_FOUND" => Ok(Self::NotFound),
+            "IDEMPOTENCY_IN_PROGRESS" => Ok(Self::IdempotencyInProgress),
+            "IDEMPOTENCY_KEY_REUSED" => Ok(Self::IdempotencyKeyReused),
             "TOO_MANY_REQUESTS" => Ok(Self::TooManyRequests),
             "UPSTREAM_UNREACHABLE" => Ok(Self::UpstreamUnreachable),
             "SERVICE_UNAVAILABLE" => Ok(Self::ServiceUnavailable),

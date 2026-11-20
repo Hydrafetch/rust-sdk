@@ -1177,6 +1177,154 @@ impl ::std::convert::TryFrom<::std::string::String> for CrawlStatusResponseDtoSt
         value.parse()
     }
 }
+#[doc = "`CreateMonitorDto`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct CreateMonitorDto {
+    #[doc = "Send the workspace owner a daily email listing what this monitor found. Nothing is sent on a day without changes."]
+    #[serde(default = "defaults::create_monitor_dto_email")]
+    pub email: CreateMonitorDtoEmail,
+    pub name: CreateMonitorDtoName,
+    #[doc = "How many days of check history to keep."]
+    #[serde(
+        rename = "retentionDays",
+        default = "defaults::default_nzu64::<::std::num::NonZeroU64, 30>"
+    )]
+    pub retention_days: ::std::num::NonZeroU64,
+    pub schedule: MonitorScheduleDto,
+    #[doc = "What to watch, up to 10 targets: pages, a whole site, or a search."]
+    pub targets: ::std::vec::Vec<CreateMonitorDtoTargetsItem>,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub webhook: ::std::option::Option<MonitorWebhookDto>,
+}
+#[doc = "Send the workspace owner a daily email listing what this monitor found. Nothing is sent on a day without changes."]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum CreateMonitorDtoEmail {
+    #[serde(rename = "off")]
+    Off,
+    #[serde(rename = "daily")]
+    Daily,
+}
+impl ::std::fmt::Display for CreateMonitorDtoEmail {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Off => f.write_str("off"),
+            Self::Daily => f.write_str("daily"),
+        }
+    }
+}
+impl ::std::str::FromStr for CreateMonitorDtoEmail {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "off" => Ok(Self::Off),
+            "daily" => Ok(Self::Daily),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for CreateMonitorDtoEmail {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for CreateMonitorDtoEmail {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::default::Default for CreateMonitorDtoEmail {
+    fn default() -> Self {
+        CreateMonitorDtoEmail::Off
+    }
+}
+#[doc = "`CreateMonitorDtoName`"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct CreateMonitorDtoName(::std::string::String);
+impl ::std::ops::Deref for CreateMonitorDtoName {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<CreateMonitorDtoName> for ::std::string::String {
+    fn from(value: CreateMonitorDtoName) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for CreateMonitorDtoName {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 200usize {
+            return Err("longer than 200 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for CreateMonitorDtoName {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for CreateMonitorDtoName {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for CreateMonitorDtoName {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`CreateMonitorDtoTargetsItem`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(untagged)]
+pub enum CreateMonitorDtoTargetsItem {
+    PagesTargetDto(MonitorPagesTargetDto),
+    SiteTargetDto(MonitorSiteTargetDto),
+    SearchTargetDto(MonitorSearchTargetDto),
+}
+impl ::std::convert::From<MonitorPagesTargetDto> for CreateMonitorDtoTargetsItem {
+    fn from(value: MonitorPagesTargetDto) -> Self {
+        Self::PagesTargetDto(value)
+    }
+}
+impl ::std::convert::From<MonitorSiteTargetDto> for CreateMonitorDtoTargetsItem {
+    fn from(value: MonitorSiteTargetDto) -> Self {
+        Self::SiteTargetDto(value)
+    }
+}
+impl ::std::convert::From<MonitorSearchTargetDto> for CreateMonitorDtoTargetsItem {
+    fn from(value: MonitorSearchTargetDto) -> Self {
+        Self::SearchTargetDto(value)
+    }
+}
 #[doc = "`ExtractItemResultDto`"]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct ExtractItemResultDto {
@@ -2119,6 +2267,1986 @@ pub struct MergedEntityDto {
     pub data: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
     #[doc = "Every source URL that contributed to this entity."]
     pub sources: ::std::vec::Vec<::std::string::String>,
+}
+#[doc = "`MonitorChangeDto`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct MonitorChangeDto {
+    #[serde(rename = "detectedAt")]
+    pub detected_at: ::std::string::String,
+    #[doc = "Unified diff of the page text."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub diff: ::std::option::Option<::std::string::String>,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub error: ::std::option::Option<::std::string::String>,
+    #[doc = "Opening lines of a page that appeared on a site, or the snippet of a new search result."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub excerpt: ::std::option::Option<::std::string::String>,
+    #[serde(rename = "fieldChanges")]
+    pub field_changes: ::std::vec::Vec<MonitorFieldChangeDto>,
+    #[doc = "The verdict against the target's goal. Null when the target has no goal, the change was not checked, or the check could not be made."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub judge: ::std::option::Option<MonitorJudgeDto>,
+    pub status: MonitorChangeDtoStatus,
+    #[serde(rename = "targetId")]
+    pub target_id: ::std::string::String,
+    #[doc = "Title of a page that appeared on a site, or of a new search result."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub title: ::std::option::Option<::std::string::String>,
+    pub url: ::std::string::String,
+}
+#[doc = "`MonitorChangeDtoStatus`"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MonitorChangeDtoStatus {
+    #[serde(rename = "same")]
+    Same,
+    #[serde(rename = "new")]
+    New,
+    #[serde(rename = "changed")]
+    Changed,
+    #[serde(rename = "removed")]
+    Removed,
+    #[serde(rename = "error")]
+    Error,
+}
+impl ::std::fmt::Display for MonitorChangeDtoStatus {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Same => f.write_str("same"),
+            Self::New => f.write_str("new"),
+            Self::Changed => f.write_str("changed"),
+            Self::Removed => f.write_str("removed"),
+            Self::Error => f.write_str("error"),
+        }
+    }
+}
+impl ::std::str::FromStr for MonitorChangeDtoStatus {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "same" => Ok(Self::Same),
+            "new" => Ok(Self::New),
+            "changed" => Ok(Self::Changed),
+            "removed" => Ok(Self::Removed),
+            "error" => Ok(Self::Error),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MonitorChangeDtoStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MonitorChangeDtoStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`MonitorCheckEnvelopeDto`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct MonitorCheckEnvelopeDto {
+    pub data: MonitorCheckResponseDto,
+}
+#[doc = "`MonitorCheckListDto`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct MonitorCheckListDto {
+    pub data: ::std::vec::Vec<MonitorCheckSummaryDto>,
+}
+#[doc = "`MonitorCheckResponseDto`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct MonitorCheckResponseDto {
+    pub changed: f64,
+    pub changes: ::std::vec::Vec<MonitorChangeDto>,
+    #[serde(rename = "creditsUsed")]
+    pub credits_used: f64,
+    #[doc = "Pages we could not read this time. Never counted as a change."]
+    pub error: f64,
+    #[serde(
+        rename = "finishedAt",
+        deserialize_with = "::std::option::Option::deserialize"
+    )]
+    pub finished_at: ::std::option::Option<::std::string::String>,
+    pub id: ::std::string::String,
+    #[serde(rename = "monitorId")]
+    pub monitor_id: ::std::string::String,
+    pub new: f64,
+    pub removed: f64,
+    pub same: f64,
+    #[serde(rename = "startedAt")]
+    pub started_at: ::std::string::String,
+    pub status: MonitorCheckResponseDtoStatus,
+    #[doc = "Pages this check reads."]
+    #[serde(rename = "totalPages")]
+    pub total_pages: f64,
+    pub trigger: MonitorCheckResponseDtoTrigger,
+}
+#[doc = "`MonitorCheckResponseDtoStatus`"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MonitorCheckResponseDtoStatus {
+    #[serde(rename = "running")]
+    Running,
+    #[serde(rename = "completed")]
+    Completed,
+    #[serde(rename = "partial")]
+    Partial,
+    #[serde(rename = "failed")]
+    Failed,
+    #[serde(rename = "skipped_no_credits")]
+    SkippedNoCredits,
+    #[serde(rename = "skipped_overlap")]
+    SkippedOverlap,
+}
+impl ::std::fmt::Display for MonitorCheckResponseDtoStatus {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Running => f.write_str("running"),
+            Self::Completed => f.write_str("completed"),
+            Self::Partial => f.write_str("partial"),
+            Self::Failed => f.write_str("failed"),
+            Self::SkippedNoCredits => f.write_str("skipped_no_credits"),
+            Self::SkippedOverlap => f.write_str("skipped_overlap"),
+        }
+    }
+}
+impl ::std::str::FromStr for MonitorCheckResponseDtoStatus {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "running" => Ok(Self::Running),
+            "completed" => Ok(Self::Completed),
+            "partial" => Ok(Self::Partial),
+            "failed" => Ok(Self::Failed),
+            "skipped_no_credits" => Ok(Self::SkippedNoCredits),
+            "skipped_overlap" => Ok(Self::SkippedOverlap),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MonitorCheckResponseDtoStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MonitorCheckResponseDtoStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`MonitorCheckResponseDtoTrigger`"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MonitorCheckResponseDtoTrigger {
+    #[serde(rename = "scheduled")]
+    Scheduled,
+    #[serde(rename = "manual")]
+    Manual,
+}
+impl ::std::fmt::Display for MonitorCheckResponseDtoTrigger {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Scheduled => f.write_str("scheduled"),
+            Self::Manual => f.write_str("manual"),
+        }
+    }
+}
+impl ::std::str::FromStr for MonitorCheckResponseDtoTrigger {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "scheduled" => Ok(Self::Scheduled),
+            "manual" => Ok(Self::Manual),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MonitorCheckResponseDtoTrigger {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MonitorCheckResponseDtoTrigger {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`MonitorCheckSummaryDto`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct MonitorCheckSummaryDto {
+    pub changed: f64,
+    #[serde(rename = "creditsUsed")]
+    pub credits_used: f64,
+    #[doc = "Pages we could not read this time. Never counted as a change."]
+    pub error: f64,
+    #[serde(
+        rename = "finishedAt",
+        deserialize_with = "::std::option::Option::deserialize"
+    )]
+    pub finished_at: ::std::option::Option<::std::string::String>,
+    pub id: ::std::string::String,
+    pub new: f64,
+    pub removed: f64,
+    pub same: f64,
+    #[serde(rename = "startedAt")]
+    pub started_at: ::std::string::String,
+    pub status: MonitorCheckSummaryDtoStatus,
+    #[doc = "Pages this check reads."]
+    #[serde(rename = "totalPages")]
+    pub total_pages: f64,
+    pub trigger: MonitorCheckSummaryDtoTrigger,
+}
+#[doc = "`MonitorCheckSummaryDtoStatus`"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MonitorCheckSummaryDtoStatus {
+    #[serde(rename = "running")]
+    Running,
+    #[serde(rename = "completed")]
+    Completed,
+    #[serde(rename = "partial")]
+    Partial,
+    #[serde(rename = "failed")]
+    Failed,
+    #[serde(rename = "skipped_no_credits")]
+    SkippedNoCredits,
+    #[serde(rename = "skipped_overlap")]
+    SkippedOverlap,
+}
+impl ::std::fmt::Display for MonitorCheckSummaryDtoStatus {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Running => f.write_str("running"),
+            Self::Completed => f.write_str("completed"),
+            Self::Partial => f.write_str("partial"),
+            Self::Failed => f.write_str("failed"),
+            Self::SkippedNoCredits => f.write_str("skipped_no_credits"),
+            Self::SkippedOverlap => f.write_str("skipped_overlap"),
+        }
+    }
+}
+impl ::std::str::FromStr for MonitorCheckSummaryDtoStatus {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "running" => Ok(Self::Running),
+            "completed" => Ok(Self::Completed),
+            "partial" => Ok(Self::Partial),
+            "failed" => Ok(Self::Failed),
+            "skipped_no_credits" => Ok(Self::SkippedNoCredits),
+            "skipped_overlap" => Ok(Self::SkippedOverlap),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MonitorCheckSummaryDtoStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MonitorCheckSummaryDtoStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`MonitorCheckSummaryDtoTrigger`"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MonitorCheckSummaryDtoTrigger {
+    #[serde(rename = "scheduled")]
+    Scheduled,
+    #[serde(rename = "manual")]
+    Manual,
+}
+impl ::std::fmt::Display for MonitorCheckSummaryDtoTrigger {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Scheduled => f.write_str("scheduled"),
+            Self::Manual => f.write_str("manual"),
+        }
+    }
+}
+impl ::std::str::FromStr for MonitorCheckSummaryDtoTrigger {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "scheduled" => Ok(Self::Scheduled),
+            "manual" => Ok(Self::Manual),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MonitorCheckSummaryDtoTrigger {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MonitorCheckSummaryDtoTrigger {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`MonitorEnvelopeDto`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct MonitorEnvelopeDto {
+    pub data: MonitorResponseDto,
+}
+#[doc = "`MonitorFieldChangeDto`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct MonitorFieldChangeDto {
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub current: ::std::option::Option<::std::string::String>,
+    pub field: ::std::string::String,
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub previous: ::std::option::Option<::std::string::String>,
+}
+#[doc = "`MonitorJudgeDto`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct MonitorJudgeDto {
+    #[doc = "Whether the change matched the target's goal."]
+    #[serde(rename = "match")]
+    pub match_: bool,
+    #[doc = "One sentence on what in the change decided it."]
+    pub reason: ::std::string::String,
+}
+#[doc = "`MonitorListDto`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct MonitorListDto {
+    pub data: ::std::vec::Vec<MonitorResponseDto>,
+}
+#[doc = "`MonitorPagesTargetDto`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct MonitorPagesTargetDto {
+    #[doc = "What you are watching for, in plain words. Each change is checked against it and only alerts when it matches; every change is still kept in the history with the verdict. One extra credit per change checked."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub goal: ::std::option::Option<MonitorPagesTargetDtoGoal>,
+    #[doc = "Lines to leave out before comparing. Plain text matches anywhere in a line, ignoring case; wrap a pattern in slashes for a regular expression."]
+    #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
+    pub ignore: ::std::vec::Vec<::std::string::String>,
+    #[doc = "How each page is read. The same options as a scrape; formats are chosen by the monitor."]
+    #[serde(
+        rename = "scrapeOptions",
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub scrape_options: ::std::option::Option<ScrapeOptionsDto>,
+    #[doc = "CSS selectors. Only the content inside them is compared, the rest of the page is ignored."]
+    #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
+    pub selector: ::std::vec::Vec<::std::string::String>,
+    #[doc = "Only alert when an added or removed line contains one of these. Plain text or a regular expression in slashes. Every change is still kept in the history."]
+    #[serde(
+        rename = "triggerOn",
+        default,
+        skip_serializing_if = "::std::vec::Vec::is_empty"
+    )]
+    pub trigger_on: ::std::vec::Vec<::std::string::String>,
+    #[doc = "Watch a list of pages for changes to their content."]
+    #[serde(rename = "type")]
+    pub type_: MonitorPagesTargetDtoType,
+    #[doc = "The pages to watch, up to 50."]
+    pub urls: ::std::vec::Vec<::std::string::String>,
+}
+#[doc = "What you are watching for, in plain words. Each change is checked against it and only alerts when it matches; every change is still kept in the history with the verdict. One extra credit per change checked."]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct MonitorPagesTargetDtoGoal(::std::string::String);
+impl ::std::ops::Deref for MonitorPagesTargetDtoGoal {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<MonitorPagesTargetDtoGoal> for ::std::string::String {
+    fn from(value: MonitorPagesTargetDtoGoal) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for MonitorPagesTargetDtoGoal {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 300usize {
+            return Err("longer than 300 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for MonitorPagesTargetDtoGoal {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MonitorPagesTargetDtoGoal {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for MonitorPagesTargetDtoGoal {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "Watch a list of pages for changes to their content."]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MonitorPagesTargetDtoType {
+    #[serde(rename = "pages")]
+    Pages,
+}
+impl ::std::fmt::Display for MonitorPagesTargetDtoType {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Pages => f.write_str("pages"),
+        }
+    }
+}
+impl ::std::str::FromStr for MonitorPagesTargetDtoType {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "pages" => Ok(Self::Pages),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MonitorPagesTargetDtoType {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MonitorPagesTargetDtoType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`MonitorPagesTargetResponseDto`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct MonitorPagesTargetResponseDto {
+    #[doc = "What you are watching for, in plain words. Each change is checked against it and only alerts when it matches; every change is still kept in the history with the verdict. One extra credit per change checked."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub goal: ::std::option::Option<MonitorPagesTargetResponseDtoGoal>,
+    #[doc = "Stable id of this target within the monitor."]
+    pub id: ::std::string::String,
+    #[doc = "Lines to leave out before comparing. Plain text matches anywhere in a line, ignoring case; wrap a pattern in slashes for a regular expression."]
+    #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
+    pub ignore: ::std::vec::Vec<::std::string::String>,
+    #[doc = "How each page is read. The same options as a scrape; formats are chosen by the monitor."]
+    #[serde(
+        rename = "scrapeOptions",
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub scrape_options: ::std::option::Option<ScrapeOptionsDto>,
+    #[doc = "CSS selectors. Only the content inside them is compared, the rest of the page is ignored."]
+    #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
+    pub selector: ::std::vec::Vec<::std::string::String>,
+    #[doc = "Only alert when an added or removed line contains one of these. Plain text or a regular expression in slashes. Every change is still kept in the history."]
+    #[serde(
+        rename = "triggerOn",
+        default,
+        skip_serializing_if = "::std::vec::Vec::is_empty"
+    )]
+    pub trigger_on: ::std::vec::Vec<::std::string::String>,
+    #[doc = "Watch a list of pages for changes to their content."]
+    #[serde(rename = "type")]
+    pub type_: MonitorPagesTargetResponseDtoType,
+    #[doc = "The pages to watch, up to 50."]
+    pub urls: ::std::vec::Vec<::std::string::String>,
+}
+#[doc = "What you are watching for, in plain words. Each change is checked against it and only alerts when it matches; every change is still kept in the history with the verdict. One extra credit per change checked."]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct MonitorPagesTargetResponseDtoGoal(::std::string::String);
+impl ::std::ops::Deref for MonitorPagesTargetResponseDtoGoal {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<MonitorPagesTargetResponseDtoGoal> for ::std::string::String {
+    fn from(value: MonitorPagesTargetResponseDtoGoal) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for MonitorPagesTargetResponseDtoGoal {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 300usize {
+            return Err("longer than 300 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for MonitorPagesTargetResponseDtoGoal {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MonitorPagesTargetResponseDtoGoal {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for MonitorPagesTargetResponseDtoGoal {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "Watch a list of pages for changes to their content."]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MonitorPagesTargetResponseDtoType {
+    #[serde(rename = "pages")]
+    Pages,
+}
+impl ::std::fmt::Display for MonitorPagesTargetResponseDtoType {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Pages => f.write_str("pages"),
+        }
+    }
+}
+impl ::std::str::FromStr for MonitorPagesTargetResponseDtoType {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "pages" => Ok(Self::Pages),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MonitorPagesTargetResponseDtoType {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MonitorPagesTargetResponseDtoType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`MonitorResponseDto`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct MonitorResponseDto {
+    #[serde(rename = "createdAt")]
+    pub created_at: ::std::string::String,
+    pub email: MonitorResponseDtoEmail,
+    pub id: ::std::string::String,
+    #[serde(
+        rename = "lastCheck",
+        deserialize_with = "::std::option::Option::deserialize"
+    )]
+    pub last_check: ::std::option::Option<MonitorCheckSummaryDto>,
+    #[serde(
+        rename = "lastRunAt",
+        deserialize_with = "::std::option::Option::deserialize"
+    )]
+    pub last_run_at: ::std::option::Option<::std::string::String>,
+    pub name: ::std::string::String,
+    #[serde(
+        rename = "nextRunAt",
+        deserialize_with = "::std::option::Option::deserialize"
+    )]
+    pub next_run_at: ::std::option::Option<::std::string::String>,
+    #[serde(
+        rename = "pausedReason",
+        deserialize_with = "::std::option::Option::deserialize"
+    )]
+    pub paused_reason: ::std::option::Option<MonitorResponseDtoPausedReason>,
+    #[serde(rename = "retentionDays")]
+    pub retention_days: f64,
+    pub schedule: MonitorScheduleResponseDto,
+    pub status: MonitorResponseDtoStatus,
+    pub targets: ::std::vec::Vec<MonitorResponseDtoTargetsItem>,
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub webhook: ::std::option::Option<MonitorWebhookResponseDto>,
+}
+#[doc = "`MonitorResponseDtoEmail`"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MonitorResponseDtoEmail {
+    #[serde(rename = "off")]
+    Off,
+    #[serde(rename = "daily")]
+    Daily,
+}
+impl ::std::fmt::Display for MonitorResponseDtoEmail {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Off => f.write_str("off"),
+            Self::Daily => f.write_str("daily"),
+        }
+    }
+}
+impl ::std::str::FromStr for MonitorResponseDtoEmail {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "off" => Ok(Self::Off),
+            "daily" => Ok(Self::Daily),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MonitorResponseDtoEmail {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MonitorResponseDtoEmail {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`MonitorResponseDtoPausedReason`"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MonitorResponseDtoPausedReason {
+    #[serde(rename = "user")]
+    User,
+    #[serde(rename = "plan")]
+    Plan,
+    #[serde(rename = "failing")]
+    Failing,
+}
+impl ::std::fmt::Display for MonitorResponseDtoPausedReason {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::User => f.write_str("user"),
+            Self::Plan => f.write_str("plan"),
+            Self::Failing => f.write_str("failing"),
+        }
+    }
+}
+impl ::std::str::FromStr for MonitorResponseDtoPausedReason {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "user" => Ok(Self::User),
+            "plan" => Ok(Self::Plan),
+            "failing" => Ok(Self::Failing),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MonitorResponseDtoPausedReason {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MonitorResponseDtoPausedReason {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`MonitorResponseDtoStatus`"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MonitorResponseDtoStatus {
+    #[serde(rename = "active")]
+    Active,
+    #[serde(rename = "paused")]
+    Paused,
+}
+impl ::std::fmt::Display for MonitorResponseDtoStatus {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Active => f.write_str("active"),
+            Self::Paused => f.write_str("paused"),
+        }
+    }
+}
+impl ::std::str::FromStr for MonitorResponseDtoStatus {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "active" => Ok(Self::Active),
+            "paused" => Ok(Self::Paused),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MonitorResponseDtoStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MonitorResponseDtoStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`MonitorResponseDtoTargetsItem`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(untagged)]
+pub enum MonitorResponseDtoTargetsItem {
+    PagesTargetResponseDto(MonitorPagesTargetResponseDto),
+    SiteTargetResponseDto(MonitorSiteTargetResponseDto),
+    SearchTargetResponseDto(MonitorSearchTargetResponseDto),
+}
+impl ::std::convert::From<MonitorPagesTargetResponseDto> for MonitorResponseDtoTargetsItem {
+    fn from(value: MonitorPagesTargetResponseDto) -> Self {
+        Self::PagesTargetResponseDto(value)
+    }
+}
+impl ::std::convert::From<MonitorSiteTargetResponseDto> for MonitorResponseDtoTargetsItem {
+    fn from(value: MonitorSiteTargetResponseDto) -> Self {
+        Self::SiteTargetResponseDto(value)
+    }
+}
+impl ::std::convert::From<MonitorSearchTargetResponseDto> for MonitorResponseDtoTargetsItem {
+    fn from(value: MonitorSearchTargetResponseDto) -> Self {
+        Self::SearchTargetResponseDto(value)
+    }
+}
+#[doc = "`MonitorScheduleDto`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct MonitorScheduleDto {
+    #[doc = "How often to check. The shortest is every 15 minutes."]
+    pub every: MonitorScheduleDtoEvery,
+}
+#[doc = "How often to check. The shortest is every 15 minutes."]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MonitorScheduleDtoEvery {
+    #[serde(rename = "15m")]
+    X15m,
+    #[serde(rename = "30m")]
+    X30m,
+    #[serde(rename = "1h")]
+    X1h,
+    #[serde(rename = "2h")]
+    X2h,
+    #[serde(rename = "6h")]
+    X6h,
+    #[serde(rename = "12h")]
+    X12h,
+    #[serde(rename = "1d")]
+    X1d,
+    #[serde(rename = "7d")]
+    X7d,
+}
+impl ::std::fmt::Display for MonitorScheduleDtoEvery {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::X15m => f.write_str("15m"),
+            Self::X30m => f.write_str("30m"),
+            Self::X1h => f.write_str("1h"),
+            Self::X2h => f.write_str("2h"),
+            Self::X6h => f.write_str("6h"),
+            Self::X12h => f.write_str("12h"),
+            Self::X1d => f.write_str("1d"),
+            Self::X7d => f.write_str("7d"),
+        }
+    }
+}
+impl ::std::str::FromStr for MonitorScheduleDtoEvery {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "15m" => Ok(Self::X15m),
+            "30m" => Ok(Self::X30m),
+            "1h" => Ok(Self::X1h),
+            "2h" => Ok(Self::X2h),
+            "6h" => Ok(Self::X6h),
+            "12h" => Ok(Self::X12h),
+            "1d" => Ok(Self::X1d),
+            "7d" => Ok(Self::X7d),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MonitorScheduleDtoEvery {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MonitorScheduleDtoEvery {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`MonitorScheduleResponseDto`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct MonitorScheduleResponseDto {
+    pub every: MonitorScheduleResponseDtoEvery,
+}
+#[doc = "`MonitorScheduleResponseDtoEvery`"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MonitorScheduleResponseDtoEvery {
+    #[serde(rename = "15m")]
+    X15m,
+    #[serde(rename = "30m")]
+    X30m,
+    #[serde(rename = "1h")]
+    X1h,
+    #[serde(rename = "2h")]
+    X2h,
+    #[serde(rename = "6h")]
+    X6h,
+    #[serde(rename = "12h")]
+    X12h,
+    #[serde(rename = "1d")]
+    X1d,
+    #[serde(rename = "7d")]
+    X7d,
+}
+impl ::std::fmt::Display for MonitorScheduleResponseDtoEvery {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::X15m => f.write_str("15m"),
+            Self::X30m => f.write_str("30m"),
+            Self::X1h => f.write_str("1h"),
+            Self::X2h => f.write_str("2h"),
+            Self::X6h => f.write_str("6h"),
+            Self::X12h => f.write_str("12h"),
+            Self::X1d => f.write_str("1d"),
+            Self::X7d => f.write_str("7d"),
+        }
+    }
+}
+impl ::std::str::FromStr for MonitorScheduleResponseDtoEvery {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "15m" => Ok(Self::X15m),
+            "30m" => Ok(Self::X30m),
+            "1h" => Ok(Self::X1h),
+            "2h" => Ok(Self::X2h),
+            "6h" => Ok(Self::X6h),
+            "12h" => Ok(Self::X12h),
+            "1d" => Ok(Self::X1d),
+            "7d" => Ok(Self::X7d),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MonitorScheduleResponseDtoEvery {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MonitorScheduleResponseDtoEvery {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`MonitorSearchTargetDto`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct MonitorSearchTargetDto {
+    #[doc = "ISO 3166 alpha-2 country code to bias results toward a region."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub country: ::std::option::Option<::std::string::String>,
+    #[doc = "Drop results from these domains."]
+    #[serde(
+        rename = "excludeDomains",
+        default,
+        skip_serializing_if = "::std::vec::Vec::is_empty"
+    )]
+    pub exclude_domains: ::std::vec::Vec<::std::string::String>,
+    #[doc = "What you are watching for, in plain words. Each change is checked against it and only alerts when it matches; every change is still kept in the history with the verdict. One extra credit per change checked."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub goal: ::std::option::Option<MonitorSearchTargetDtoGoal>,
+    #[doc = "Only return results from these domains."]
+    #[serde(
+        rename = "includeDomains",
+        default,
+        skip_serializing_if = "::std::vec::Vec::is_empty"
+    )]
+    pub include_domains: ::std::vec::Vec<::std::string::String>,
+    #[doc = "How many top results to look at each time."]
+    #[serde(default = "defaults::default_nzu64::<::std::num::NonZeroU64, 10>")]
+    pub limit: ::std::num::NonZeroU64,
+    #[doc = "What to search the web for."]
+    pub query: MonitorSearchTargetDtoQuery,
+    #[doc = "Restrict results to a recency window relative to now."]
+    #[serde(
+        rename = "timeRange",
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub time_range: ::std::option::Option<MonitorSearchTargetDtoTimeRange>,
+    #[doc = "Run a search on a schedule and report results it has never returned before. Checks at most once an hour."]
+    #[serde(rename = "type")]
+    pub type_: MonitorSearchTargetDtoType,
+}
+#[doc = "What you are watching for, in plain words. Each change is checked against it and only alerts when it matches; every change is still kept in the history with the verdict. One extra credit per change checked."]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct MonitorSearchTargetDtoGoal(::std::string::String);
+impl ::std::ops::Deref for MonitorSearchTargetDtoGoal {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<MonitorSearchTargetDtoGoal> for ::std::string::String {
+    fn from(value: MonitorSearchTargetDtoGoal) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for MonitorSearchTargetDtoGoal {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 300usize {
+            return Err("longer than 300 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for MonitorSearchTargetDtoGoal {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MonitorSearchTargetDtoGoal {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for MonitorSearchTargetDtoGoal {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "What to search the web for."]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct MonitorSearchTargetDtoQuery(::std::string::String);
+impl ::std::ops::Deref for MonitorSearchTargetDtoQuery {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<MonitorSearchTargetDtoQuery> for ::std::string::String {
+    fn from(value: MonitorSearchTargetDtoQuery) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for MonitorSearchTargetDtoQuery {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 500usize {
+            return Err("longer than 500 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for MonitorSearchTargetDtoQuery {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MonitorSearchTargetDtoQuery {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for MonitorSearchTargetDtoQuery {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "Restrict results to a recency window relative to now."]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MonitorSearchTargetDtoTimeRange {
+    #[serde(rename = "day")]
+    Day,
+    #[serde(rename = "week")]
+    Week,
+    #[serde(rename = "month")]
+    Month,
+    #[serde(rename = "year")]
+    Year,
+}
+impl ::std::fmt::Display for MonitorSearchTargetDtoTimeRange {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Day => f.write_str("day"),
+            Self::Week => f.write_str("week"),
+            Self::Month => f.write_str("month"),
+            Self::Year => f.write_str("year"),
+        }
+    }
+}
+impl ::std::str::FromStr for MonitorSearchTargetDtoTimeRange {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "day" => Ok(Self::Day),
+            "week" => Ok(Self::Week),
+            "month" => Ok(Self::Month),
+            "year" => Ok(Self::Year),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MonitorSearchTargetDtoTimeRange {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MonitorSearchTargetDtoTimeRange {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "Run a search on a schedule and report results it has never returned before. Checks at most once an hour."]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MonitorSearchTargetDtoType {
+    #[serde(rename = "search")]
+    Search,
+}
+impl ::std::fmt::Display for MonitorSearchTargetDtoType {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Search => f.write_str("search"),
+        }
+    }
+}
+impl ::std::str::FromStr for MonitorSearchTargetDtoType {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "search" => Ok(Self::Search),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MonitorSearchTargetDtoType {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MonitorSearchTargetDtoType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`MonitorSearchTargetResponseDto`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct MonitorSearchTargetResponseDto {
+    #[doc = "ISO 3166 alpha-2 country code to bias results toward a region."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub country: ::std::option::Option<::std::string::String>,
+    #[doc = "Drop results from these domains."]
+    #[serde(
+        rename = "excludeDomains",
+        default,
+        skip_serializing_if = "::std::vec::Vec::is_empty"
+    )]
+    pub exclude_domains: ::std::vec::Vec<::std::string::String>,
+    #[doc = "What you are watching for, in plain words. Each change is checked against it and only alerts when it matches; every change is still kept in the history with the verdict. One extra credit per change checked."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub goal: ::std::option::Option<MonitorSearchTargetResponseDtoGoal>,
+    #[doc = "Stable id of this target within the monitor."]
+    pub id: ::std::string::String,
+    #[doc = "Only return results from these domains."]
+    #[serde(
+        rename = "includeDomains",
+        default,
+        skip_serializing_if = "::std::vec::Vec::is_empty"
+    )]
+    pub include_domains: ::std::vec::Vec<::std::string::String>,
+    #[doc = "How many top results to look at each time."]
+    #[serde(default = "defaults::monitor_search_target_response_dto_limit")]
+    pub limit: f64,
+    #[doc = "What to search the web for."]
+    pub query: MonitorSearchTargetResponseDtoQuery,
+    #[doc = "Restrict results to a recency window relative to now."]
+    #[serde(
+        rename = "timeRange",
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub time_range: ::std::option::Option<MonitorSearchTargetResponseDtoTimeRange>,
+    #[doc = "Run a search on a schedule and report results it has never returned before. Checks at most once an hour."]
+    #[serde(rename = "type")]
+    pub type_: MonitorSearchTargetResponseDtoType,
+}
+#[doc = "What you are watching for, in plain words. Each change is checked against it and only alerts when it matches; every change is still kept in the history with the verdict. One extra credit per change checked."]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct MonitorSearchTargetResponseDtoGoal(::std::string::String);
+impl ::std::ops::Deref for MonitorSearchTargetResponseDtoGoal {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<MonitorSearchTargetResponseDtoGoal> for ::std::string::String {
+    fn from(value: MonitorSearchTargetResponseDtoGoal) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for MonitorSearchTargetResponseDtoGoal {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 300usize {
+            return Err("longer than 300 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for MonitorSearchTargetResponseDtoGoal {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MonitorSearchTargetResponseDtoGoal {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for MonitorSearchTargetResponseDtoGoal {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "What to search the web for."]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct MonitorSearchTargetResponseDtoQuery(::std::string::String);
+impl ::std::ops::Deref for MonitorSearchTargetResponseDtoQuery {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<MonitorSearchTargetResponseDtoQuery> for ::std::string::String {
+    fn from(value: MonitorSearchTargetResponseDtoQuery) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for MonitorSearchTargetResponseDtoQuery {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 500usize {
+            return Err("longer than 500 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for MonitorSearchTargetResponseDtoQuery {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MonitorSearchTargetResponseDtoQuery {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for MonitorSearchTargetResponseDtoQuery {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "Restrict results to a recency window relative to now."]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MonitorSearchTargetResponseDtoTimeRange {
+    #[serde(rename = "day")]
+    Day,
+    #[serde(rename = "week")]
+    Week,
+    #[serde(rename = "month")]
+    Month,
+    #[serde(rename = "year")]
+    Year,
+}
+impl ::std::fmt::Display for MonitorSearchTargetResponseDtoTimeRange {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Day => f.write_str("day"),
+            Self::Week => f.write_str("week"),
+            Self::Month => f.write_str("month"),
+            Self::Year => f.write_str("year"),
+        }
+    }
+}
+impl ::std::str::FromStr for MonitorSearchTargetResponseDtoTimeRange {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "day" => Ok(Self::Day),
+            "week" => Ok(Self::Week),
+            "month" => Ok(Self::Month),
+            "year" => Ok(Self::Year),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MonitorSearchTargetResponseDtoTimeRange {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MonitorSearchTargetResponseDtoTimeRange {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "Run a search on a schedule and report results it has never returned before. Checks at most once an hour."]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MonitorSearchTargetResponseDtoType {
+    #[serde(rename = "search")]
+    Search,
+}
+impl ::std::fmt::Display for MonitorSearchTargetResponseDtoType {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Search => f.write_str("search"),
+        }
+    }
+}
+impl ::std::str::FromStr for MonitorSearchTargetResponseDtoType {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "search" => Ok(Self::Search),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MonitorSearchTargetResponseDtoType {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MonitorSearchTargetResponseDtoType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`MonitorSiteTargetDto`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct MonitorSiteTargetDto {
+    #[doc = "Leave out pages whose path matches one of these patterns."]
+    #[serde(
+        rename = "excludePaths",
+        default,
+        skip_serializing_if = "::std::vec::Vec::is_empty"
+    )]
+    pub exclude_paths: ::std::vec::Vec<::std::string::String>,
+    #[doc = "What you are watching for, in plain words. Each change is checked against it and only alerts when it matches; every change is still kept in the history with the verdict. One extra credit per change checked."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub goal: ::std::option::Option<MonitorSiteTargetDtoGoal>,
+    #[doc = "Only count pages whose path matches one of these patterns."]
+    #[serde(
+        rename = "includePaths",
+        default,
+        skip_serializing_if = "::std::vec::Vec::is_empty"
+    )]
+    pub include_paths: ::std::vec::Vec<::std::string::String>,
+    #[doc = "The most pages to track. When a site has more, new pages are still found but none are reported as removed."]
+    #[serde(default = "defaults::default_nzu64::<::std::num::NonZeroU64, 200>")]
+    pub limit: ::std::num::NonZeroU64,
+    #[doc = "Read each new page once for its title and opening lines, up to 20 a check, at one credit each. Off reports the address only."]
+    #[serde(rename = "readNewPages", default = "defaults::default_bool::<true>")]
+    pub read_new_pages: bool,
+    #[doc = "Watch a whole site for pages that appear or disappear. Each new page is read once for its title and opening lines."]
+    #[serde(rename = "type")]
+    pub type_: MonitorSiteTargetDtoType,
+    #[doc = "Where the site starts."]
+    pub url: ::std::string::String,
+}
+#[doc = "What you are watching for, in plain words. Each change is checked against it and only alerts when it matches; every change is still kept in the history with the verdict. One extra credit per change checked."]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct MonitorSiteTargetDtoGoal(::std::string::String);
+impl ::std::ops::Deref for MonitorSiteTargetDtoGoal {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<MonitorSiteTargetDtoGoal> for ::std::string::String {
+    fn from(value: MonitorSiteTargetDtoGoal) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for MonitorSiteTargetDtoGoal {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 300usize {
+            return Err("longer than 300 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for MonitorSiteTargetDtoGoal {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MonitorSiteTargetDtoGoal {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for MonitorSiteTargetDtoGoal {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "Watch a whole site for pages that appear or disappear. Each new page is read once for its title and opening lines."]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MonitorSiteTargetDtoType {
+    #[serde(rename = "site")]
+    Site,
+}
+impl ::std::fmt::Display for MonitorSiteTargetDtoType {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Site => f.write_str("site"),
+        }
+    }
+}
+impl ::std::str::FromStr for MonitorSiteTargetDtoType {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "site" => Ok(Self::Site),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MonitorSiteTargetDtoType {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MonitorSiteTargetDtoType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`MonitorSiteTargetResponseDto`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct MonitorSiteTargetResponseDto {
+    #[doc = "Leave out pages whose path matches one of these patterns."]
+    #[serde(
+        rename = "excludePaths",
+        default,
+        skip_serializing_if = "::std::vec::Vec::is_empty"
+    )]
+    pub exclude_paths: ::std::vec::Vec<::std::string::String>,
+    #[doc = "What you are watching for, in plain words. Each change is checked against it and only alerts when it matches; every change is still kept in the history with the verdict. One extra credit per change checked."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub goal: ::std::option::Option<MonitorSiteTargetResponseDtoGoal>,
+    #[doc = "Stable id of this target within the monitor."]
+    pub id: ::std::string::String,
+    #[doc = "Only count pages whose path matches one of these patterns."]
+    #[serde(
+        rename = "includePaths",
+        default,
+        skip_serializing_if = "::std::vec::Vec::is_empty"
+    )]
+    pub include_paths: ::std::vec::Vec<::std::string::String>,
+    #[doc = "The most pages to track. When a site has more, new pages are still found but none are reported as removed."]
+    #[serde(default = "defaults::monitor_site_target_response_dto_limit")]
+    pub limit: f64,
+    #[doc = "Read each new page once for its title and opening lines, up to 20 a check, at one credit each. Off reports the address only."]
+    #[serde(rename = "readNewPages", default = "defaults::default_bool::<true>")]
+    pub read_new_pages: bool,
+    #[doc = "Watch a whole site for pages that appear or disappear. Each new page is read once for its title and opening lines."]
+    #[serde(rename = "type")]
+    pub type_: MonitorSiteTargetResponseDtoType,
+    #[doc = "Where the site starts."]
+    pub url: ::std::string::String,
+}
+#[doc = "What you are watching for, in plain words. Each change is checked against it and only alerts when it matches; every change is still kept in the history with the verdict. One extra credit per change checked."]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct MonitorSiteTargetResponseDtoGoal(::std::string::String);
+impl ::std::ops::Deref for MonitorSiteTargetResponseDtoGoal {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<MonitorSiteTargetResponseDtoGoal> for ::std::string::String {
+    fn from(value: MonitorSiteTargetResponseDtoGoal) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for MonitorSiteTargetResponseDtoGoal {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 300usize {
+            return Err("longer than 300 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for MonitorSiteTargetResponseDtoGoal {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MonitorSiteTargetResponseDtoGoal {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for MonitorSiteTargetResponseDtoGoal {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "Watch a whole site for pages that appear or disappear. Each new page is read once for its title and opening lines."]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MonitorSiteTargetResponseDtoType {
+    #[serde(rename = "site")]
+    Site,
+}
+impl ::std::fmt::Display for MonitorSiteTargetResponseDtoType {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Site => f.write_str("site"),
+        }
+    }
+}
+impl ::std::str::FromStr for MonitorSiteTargetResponseDtoType {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "site" => Ok(Self::Site),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MonitorSiteTargetResponseDtoType {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MonitorSiteTargetResponseDtoType {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`MonitorWebhookDto`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct MonitorWebhookDto {
+    #[doc = "`change` fires for each page that changed, appeared, or was removed; `completed` fires once per check with the counts. Defaults to both."]
+    #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
+    pub events: ::std::vec::Vec<MonitorWebhookDtoEventsItem>,
+    #[doc = "Extra headers to send with each callback, e.g. for authentication."]
+    #[serde(
+        default,
+        skip_serializing_if = ":: std :: collections :: HashMap::is_empty"
+    )]
+    pub headers: ::std::collections::HashMap<::std::string::String, ::std::string::String>,
+    #[doc = "A shared secret. When set, each callback carries an X-Hydrafetch-Signature header you can verify to prove the request came from us and is not a replay."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub secret: ::std::option::Option<MonitorWebhookDtoSecret>,
+    #[doc = "The URL to POST events to. Must be a public http(s) URL; private, loopback, and link-local addresses are rejected."]
+    pub url: ::std::string::String,
+}
+#[doc = "`MonitorWebhookDtoEventsItem`"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MonitorWebhookDtoEventsItem {
+    #[serde(rename = "change")]
+    Change,
+    #[serde(rename = "completed")]
+    Completed,
+}
+impl ::std::fmt::Display for MonitorWebhookDtoEventsItem {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Change => f.write_str("change"),
+            Self::Completed => f.write_str("completed"),
+        }
+    }
+}
+impl ::std::str::FromStr for MonitorWebhookDtoEventsItem {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "change" => Ok(Self::Change),
+            "completed" => Ok(Self::Completed),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MonitorWebhookDtoEventsItem {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MonitorWebhookDtoEventsItem {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "A shared secret. When set, each callback carries an X-Hydrafetch-Signature header you can verify to prove the request came from us and is not a replay."]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct MonitorWebhookDtoSecret(::std::string::String);
+impl ::std::ops::Deref for MonitorWebhookDtoSecret {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<MonitorWebhookDtoSecret> for ::std::string::String {
+    fn from(value: MonitorWebhookDtoSecret) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for MonitorWebhookDtoSecret {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 256usize {
+            return Err("longer than 256 characters".into());
+        }
+        if value.chars().count() < 16usize {
+            return Err("shorter than 16 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for MonitorWebhookDtoSecret {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MonitorWebhookDtoSecret {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for MonitorWebhookDtoSecret {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "`MonitorWebhookResponseDto`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct MonitorWebhookResponseDto {
+    pub events: ::std::vec::Vec<MonitorWebhookResponseDtoEventsItem>,
+    pub url: ::std::string::String,
+}
+#[doc = "`MonitorWebhookResponseDtoEventsItem`"]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum MonitorWebhookResponseDtoEventsItem {
+    #[serde(rename = "change")]
+    Change,
+    #[serde(rename = "completed")]
+    Completed,
+}
+impl ::std::fmt::Display for MonitorWebhookResponseDtoEventsItem {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Change => f.write_str("change"),
+            Self::Completed => f.write_str("completed"),
+        }
+    }
+}
+impl ::std::str::FromStr for MonitorWebhookResponseDtoEventsItem {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "change" => Ok(Self::Change),
+            "completed" => Ok(Self::Completed),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MonitorWebhookResponseDtoEventsItem {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MonitorWebhookResponseDtoEventsItem {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
 }
 #[doc = "`NewsRequestDto`"]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
@@ -4498,6 +6626,224 @@ impl ::std::convert::TryFrom<::std::string::String> for StyleguideWebfontDtoType
         value.parse()
     }
 }
+#[doc = "`UpdateMonitorDto`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct UpdateMonitorDto {
+    #[doc = "Send the workspace owner a daily email listing what this monitor found. Nothing is sent on a day without changes."]
+    #[serde(default = "defaults::update_monitor_dto_email")]
+    pub email: UpdateMonitorDtoEmail,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub name: ::std::option::Option<UpdateMonitorDtoName>,
+    #[doc = "How many days of check history to keep."]
+    #[serde(
+        rename = "retentionDays",
+        default = "defaults::update_monitor_dto_retention_days"
+    )]
+    pub retention_days: f64,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub schedule: ::std::option::Option<MonitorScheduleDto>,
+    #[doc = "Pause a monitor or start it again."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub status: ::std::option::Option<UpdateMonitorDtoStatus>,
+    #[doc = "What to watch, up to 10 targets: pages, a whole site, or a search."]
+    #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
+    pub targets: ::std::vec::Vec<UpdateMonitorDtoTargetsItem>,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub webhook: ::std::option::Option<MonitorWebhookDto>,
+}
+impl ::std::default::Default for UpdateMonitorDto {
+    fn default() -> Self {
+        Self {
+            email: defaults::update_monitor_dto_email(),
+            name: Default::default(),
+            retention_days: defaults::update_monitor_dto_retention_days(),
+            schedule: Default::default(),
+            status: Default::default(),
+            targets: Default::default(),
+            webhook: Default::default(),
+        }
+    }
+}
+#[doc = "Send the workspace owner a daily email listing what this monitor found. Nothing is sent on a day without changes."]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum UpdateMonitorDtoEmail {
+    #[serde(rename = "off")]
+    Off,
+    #[serde(rename = "daily")]
+    Daily,
+}
+impl ::std::fmt::Display for UpdateMonitorDtoEmail {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Off => f.write_str("off"),
+            Self::Daily => f.write_str("daily"),
+        }
+    }
+}
+impl ::std::str::FromStr for UpdateMonitorDtoEmail {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "off" => Ok(Self::Off),
+            "daily" => Ok(Self::Daily),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for UpdateMonitorDtoEmail {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for UpdateMonitorDtoEmail {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::default::Default for UpdateMonitorDtoEmail {
+    fn default() -> Self {
+        UpdateMonitorDtoEmail::Off
+    }
+}
+#[doc = "`UpdateMonitorDtoName`"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct UpdateMonitorDtoName(::std::string::String);
+impl ::std::ops::Deref for UpdateMonitorDtoName {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<UpdateMonitorDtoName> for ::std::string::String {
+    fn from(value: UpdateMonitorDtoName) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for UpdateMonitorDtoName {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 200usize {
+            return Err("longer than 200 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for UpdateMonitorDtoName {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for UpdateMonitorDtoName {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for UpdateMonitorDtoName {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
+#[doc = "Pause a monitor or start it again."]
+#[derive(
+    :: serde :: Deserialize,
+    :: serde :: Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+)]
+pub enum UpdateMonitorDtoStatus {
+    #[serde(rename = "active")]
+    Active,
+    #[serde(rename = "paused")]
+    Paused,
+}
+impl ::std::fmt::Display for UpdateMonitorDtoStatus {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Active => f.write_str("active"),
+            Self::Paused => f.write_str("paused"),
+        }
+    }
+}
+impl ::std::str::FromStr for UpdateMonitorDtoStatus {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "active" => Ok(Self::Active),
+            "paused" => Ok(Self::Paused),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for UpdateMonitorDtoStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for UpdateMonitorDtoStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`UpdateMonitorDtoTargetsItem`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(untagged)]
+pub enum UpdateMonitorDtoTargetsItem {
+    PagesTargetDto(MonitorPagesTargetDto),
+    SiteTargetDto(MonitorSiteTargetDto),
+    SearchTargetDto(MonitorSearchTargetDto),
+}
+impl ::std::convert::From<MonitorPagesTargetDto> for UpdateMonitorDtoTargetsItem {
+    fn from(value: MonitorPagesTargetDto) -> Self {
+        Self::PagesTargetDto(value)
+    }
+}
+impl ::std::convert::From<MonitorSiteTargetDto> for UpdateMonitorDtoTargetsItem {
+    fn from(value: MonitorSiteTargetDto) -> Self {
+        Self::SiteTargetDto(value)
+    }
+}
+impl ::std::convert::From<MonitorSearchTargetDto> for UpdateMonitorDtoTargetsItem {
+    fn from(value: MonitorSearchTargetDto) -> Self {
+        Self::SearchTargetDto(value)
+    }
+}
 #[doc = "`WebBrandDataDto`"]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct WebBrandDataDto {
@@ -5323,7 +7669,7 @@ pub struct WebhookDto {
     #[doc = "A shared secret. When set, each callback carries an X-Hydrafetch-Signature header you can verify to prove the request came from us and is not a replay."]
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub secret: ::std::option::Option<WebhookDtoSecret>,
-    #[doc = "The URL to POST events to. Must be a public http(s) URL — private, loopback, and link-local addresses are rejected."]
+    #[doc = "The URL to POST events to. Must be a public http(s) URL; private, loopback, and link-local addresses are rejected."]
     pub url: ::std::string::String,
 }
 #[doc = "`WebhookDtoEventsItem`"]
@@ -5432,6 +7778,16 @@ impl<'de> ::serde::Deserialize<'de> for WebhookDtoSecret {
 }
 #[doc = " Generation of default values for serde."]
 pub mod defaults {
+    pub(super) fn default_bool<const V: bool>() -> bool {
+        V
+    }
+    pub(super) fn default_i64<T, const V: i64>() -> T
+    where
+        T: ::std::convert::TryFrom<i64>,
+        <T as ::std::convert::TryFrom<i64>>::Error: ::std::fmt::Debug,
+    {
+        T::try_from(V).unwrap()
+    }
     pub(super) fn default_nzu64<T, const V: u64>() -> T
     where
         T: ::std::convert::TryFrom<::std::num::NonZeroU64>,
@@ -5439,8 +7795,17 @@ pub mod defaults {
     {
         T::try_from(::std::num::NonZeroU64::try_from(V).unwrap()).unwrap()
     }
+    pub(super) fn create_monitor_dto_email() -> super::CreateMonitorDtoEmail {
+        super::CreateMonitorDtoEmail::Off
+    }
     pub(super) fn map_request_dto_order() -> super::MapRequestDtoOrder {
         super::MapRequestDtoOrder::Newest
+    }
+    pub(super) fn monitor_search_target_response_dto_limit() -> f64 {
+        10_f64
+    }
+    pub(super) fn monitor_site_target_response_dto_limit() -> f64 {
+        200_f64
     }
     pub(super) fn news_request_dto_time_range() -> super::NewsRequestDtoTimeRange {
         super::NewsRequestDtoTimeRange::Week
@@ -5450,6 +7815,12 @@ pub mod defaults {
     }
     pub(super) fn scrape_request_dto_method() -> super::ScrapeRequestDtoMethod {
         super::ScrapeRequestDtoMethod::Get
+    }
+    pub(super) fn update_monitor_dto_email() -> super::UpdateMonitorDtoEmail {
+        super::UpdateMonitorDtoEmail::Off
+    }
+    pub(super) fn update_monitor_dto_retention_days() -> f64 {
+        30_f64
     }
 }
 #[doc = " Error types."]

@@ -9,6 +9,13 @@ pub struct BatchAcceptedDto {
     #[doc = "Poll this batch id for progress and results."]
     #[serde(rename = "batchId")]
     pub batch_id: ::std::string::String,
+    #[doc = "Entries that were not valid http(s) URLs and were skipped. Absent when every URL was valid."]
+    #[serde(
+        rename = "invalidUrls",
+        default,
+        skip_serializing_if = "::std::vec::Vec::is_empty"
+    )]
+    pub invalid_urls: ::std::vec::Vec<::std::string::String>,
     #[doc = "The job has been accepted."]
     pub status: BatchAcceptedDtoStatus,
 }
@@ -68,7 +75,7 @@ pub struct BatchRequestDto {
         skip_serializing_if = "::std::option::Option::is_none"
     )]
     pub scrape_options: ::std::option::Option<ScrapeOptionsDto>,
-    #[doc = "The explicit list of URLs to scrape. Each must be http(s)."]
+    #[doc = "The explicit list of URLs to scrape, each http(s). Malformed entries are skipped and returned in invalidUrls; the batch is refused only when none is valid."]
     pub urls: ::std::vec::Vec<::std::string::String>,
     #[doc = "Register a callback to be notified as the batch progresses instead of polling."]
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
@@ -927,6 +934,12 @@ pub struct CrawlRequestDto {
         skip_serializing_if = "::std::option::Option::is_none"
     )]
     pub allow_subdomains: ::std::option::Option<bool>,
+    #[doc = "Crawl the whole site instead of only the section the starting URL is in. A crawl of /docs stays under /docs unless this is on or includePaths is set. Default off."]
+    #[serde(
+        rename = "crawlEntireDomain",
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub crawl_entire_domain: ::std::option::Option<bool>,
     #[doc = "Skip URLs whose path matches any of these patterns."]
     #[serde(
         rename = "excludePaths",
@@ -2682,6 +2695,9 @@ pub struct ScrapeFormatRequestDto {
     #[doc = "HTTP method to fetch the URL with. Use POST for endpoints that only answer a POST, such as JSON and GraphQL APIs. Defaults to GET."]
     #[serde(default = "defaults::scrape_format_request_dto_method")]
     pub method: ScrapeFormatRequestDtoMethod,
+    #[doc = "Render the page as a phone would see it: a phone-sized screen, touch and a mobile browser identity. Use it for sites that serve different content to phones."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub mobile: ::std::option::Option<bool>,
     #[doc = "Return only the main content, dropping nav/boilerplate. Default true."]
     #[serde(
         rename = "onlyMainContent",
@@ -2720,6 +2736,12 @@ pub struct ScrapeFormatRequestDto {
         skip_serializing_if = "::std::option::Option::is_none"
     )]
     pub wait_for: ::std::option::Option<i64>,
+    #[doc = "A CSS selector to wait for before capture. The page is rendered in a browser and read once an element matching it exists, or when the time budget runs out, in which case the result says the element never appeared."]
+    #[serde(
+        rename = "waitForSelector",
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub wait_for_selector: ::std::option::Option<ScrapeFormatRequestDtoWaitForSelector>,
 }
 #[doc = "Request body, sent verbatim. Only used when `method` is POST. Set the content type yourself via `headers`; nothing is assumed about the format."]
 #[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -2827,6 +2849,56 @@ impl ::std::default::Default for ScrapeFormatRequestDtoMethod {
         ScrapeFormatRequestDtoMethod::Get
     }
 }
+#[doc = "A CSS selector to wait for before capture. The page is rendered in a browser and read once an element matching it exists, or when the time budget runs out, in which case the result says the element never appeared."]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ScrapeFormatRequestDtoWaitForSelector(::std::string::String);
+impl ::std::ops::Deref for ScrapeFormatRequestDtoWaitForSelector {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ScrapeFormatRequestDtoWaitForSelector> for ::std::string::String {
+    fn from(value: ScrapeFormatRequestDtoWaitForSelector) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ScrapeFormatRequestDtoWaitForSelector {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 500usize {
+            return Err("longer than 500 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ScrapeFormatRequestDtoWaitForSelector {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ScrapeFormatRequestDtoWaitForSelector {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ScrapeFormatRequestDtoWaitForSelector {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
+    }
+}
 #[doc = "`ScrapeOptionsDto`"]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug, Default)]
 pub struct ScrapeOptionsDto {
@@ -2885,6 +2957,9 @@ pub struct ScrapeOptionsDto {
         skip_serializing_if = "::std::option::Option::is_none"
     )]
     pub max_age: ::std::option::Option<i64>,
+    #[doc = "Render the page as a phone would see it: a phone-sized screen, touch and a mobile browser identity. Use it for sites that serve different content to phones."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub mobile: ::std::option::Option<bool>,
     #[doc = "Return only the main content, dropping boilerplate. Default true."]
     #[serde(
         rename = "onlyMainContent",
@@ -2915,6 +2990,12 @@ pub struct ScrapeOptionsDto {
         skip_serializing_if = "::std::option::Option::is_none"
     )]
     pub wait_for: ::std::option::Option<i64>,
+    #[doc = "A CSS selector to wait for before capture. The page is rendered in a browser and read once an element matching it exists, or when the time budget runs out, in which case the result says the element never appeared."]
+    #[serde(
+        rename = "waitForSelector",
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub wait_for_selector: ::std::option::Option<ScrapeOptionsDtoWaitForSelector>,
 }
 #[doc = "`ScrapeOptionsDtoFormatsItem`"]
 #[derive(
@@ -2977,6 +3058,56 @@ impl ::std::convert::TryFrom<::std::string::String> for ScrapeOptionsDtoFormatsI
         value: ::std::string::String,
     ) -> ::std::result::Result<Self, self::error::ConversionError> {
         value.parse()
+    }
+}
+#[doc = "A CSS selector to wait for before capture. The page is rendered in a browser and read once an element matching it exists, or when the time budget runs out, in which case the result says the element never appeared."]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ScrapeOptionsDtoWaitForSelector(::std::string::String);
+impl ::std::ops::Deref for ScrapeOptionsDtoWaitForSelector {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ScrapeOptionsDtoWaitForSelector> for ::std::string::String {
+    fn from(value: ScrapeOptionsDtoWaitForSelector) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ScrapeOptionsDtoWaitForSelector {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 500usize {
+            return Err("longer than 500 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ScrapeOptionsDtoWaitForSelector {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ScrapeOptionsDtoWaitForSelector {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ScrapeOptionsDtoWaitForSelector {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
     }
 }
 #[doc = "`ScrapeRequestDto`"]
@@ -3061,6 +3192,9 @@ pub struct ScrapeRequestDto {
     #[doc = "HTTP method to fetch the URL with. Use POST for endpoints that only answer a POST, such as JSON and GraphQL APIs. Defaults to GET."]
     #[serde(default = "defaults::scrape_request_dto_method")]
     pub method: ScrapeRequestDtoMethod,
+    #[doc = "Render the page as a phone would see it: a phone-sized screen, touch and a mobile browser identity. Use it for sites that serve different content to phones."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub mobile: ::std::option::Option<bool>,
     #[doc = "Return only the main content, dropping nav/boilerplate. Default true."]
     #[serde(
         rename = "onlyMainContent",
@@ -3099,6 +3233,12 @@ pub struct ScrapeRequestDto {
         skip_serializing_if = "::std::option::Option::is_none"
     )]
     pub wait_for: ::std::option::Option<f64>,
+    #[doc = "A CSS selector to wait for before capture. The page is rendered in a browser and read once an element matching it exists, or when the time budget runs out, in which case the result says the element never appeared."]
+    #[serde(
+        rename = "waitForSelector",
+        skip_serializing_if = "::std::option::Option::is_none"
+    )]
+    pub wait_for_selector: ::std::option::Option<ScrapeRequestDtoWaitForSelector>,
 }
 #[doc = "Request body, sent verbatim. Only used when `method` is POST. Set the content type yourself via `headers`; nothing is assumed about the format."]
 #[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -3279,6 +3419,56 @@ impl ::std::convert::TryFrom<::std::string::String> for ScrapeRequestDtoMethod {
 impl ::std::default::Default for ScrapeRequestDtoMethod {
     fn default() -> Self {
         ScrapeRequestDtoMethod::Get
+    }
+}
+#[doc = "A CSS selector to wait for before capture. The page is rendered in a browser and read once an element matching it exists, or when the time budget runs out, in which case the result says the element never appeared."]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ScrapeRequestDtoWaitForSelector(::std::string::String);
+impl ::std::ops::Deref for ScrapeRequestDtoWaitForSelector {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ScrapeRequestDtoWaitForSelector> for ::std::string::String {
+    fn from(value: ScrapeRequestDtoWaitForSelector) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ScrapeRequestDtoWaitForSelector {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 500usize {
+            return Err("longer than 500 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ScrapeRequestDtoWaitForSelector {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ScrapeRequestDtoWaitForSelector {
+    type Error = self::error::ConversionError;
+    fn try_from(
+        value: ::std::string::String,
+    ) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ScrapeRequestDtoWaitForSelector {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| {
+                <D::Error as ::serde::de::Error>::custom(e.to_string())
+            })
     }
 }
 #[doc = "`ScrapeResponseDto`"]

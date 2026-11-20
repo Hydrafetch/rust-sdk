@@ -318,6 +318,7 @@ let hf = Client::builder()
 | `crawl(url, opts, wait)`, `batch(urls, opts, wait)` | `Job` | 1 per page |
 | `start_crawl`, `start_batch` | `String` | 1 per page |
 | `crawl_status(id)`, `batch_status(id)` | `Job` | free |
+| `cancel_crawl(id)`, `cancel_batch(id)` | `Job` | free, pages not yet read are not charged |
 | `rate_result(input)` | `RateResultResponse` | free |
 
 Failed requests are not billed. Pricing does not vary with page difficulty, so there is no render, stealth or proxy option to set.

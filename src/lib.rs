@@ -555,6 +555,26 @@ impl Client {
         .await
     }
 
+    pub async fn cancel_crawl(&self, id: &str) -> Result<Job> {
+        self.request(
+            reqwest::Method::DELETE,
+            &format!("/v1/web/crawl/{id}"),
+            None,
+            &[],
+        )
+        .await
+    }
+
+    pub async fn cancel_batch(&self, id: &str) -> Result<Job> {
+        self.request(
+            reqwest::Method::DELETE,
+            &format!("/v1/web/batch/{id}"),
+            None,
+            &[],
+        )
+        .await
+    }
+
     pub async fn crawl(
         &self,
         url: &str,

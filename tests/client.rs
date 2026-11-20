@@ -678,3 +678,24 @@ async fn reuses_one_idempotency_key_across_retries_of_a_post() {
     assert_eq!(keys[0], keys[1]);
     assert_ne!(keys[1], keys[2]);
 }
+
+#[tokio::test]
+async fn cancel_sends_delete_on_the_job_id() {
+    let server = MockServer::start().await;
+    for kind in ["crawl", "batch"] {
+        Mock::given(method("DELETE"))
+            .and(path(format!("/v1/web/{kind}/j_1")))
+            .respond_with(ok(
+                json!({ "success": true, "data": { "id": "j_1", "kind": kind, "status": "cancelled", "seedUrl": null, "total": 1, "completed": 0, "failed": 0, "creditsUsed": 0, "pages": [] } }),
+            ))
+            .mount(&server)
+            .await;
+    }
+    let hf = client_for(&server).await;
+    let crawl = hf.cancel_crawl("j_1").await.unwrap();
+    let batch = hf.cancel_batch("j_1").await.unwrap();
+    assert_eq!(
+        [format!("{:?}", crawl.status), format!("{:?}", batch.status)],
+        ["Cancelled", "Cancelled"]
+    );
+}

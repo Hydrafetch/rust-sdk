@@ -58,6 +58,10 @@ pub struct ScrapeOptions {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub wait_for: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub wait_for_selector: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mobile: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub timeout: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub location: Option<Location>,
@@ -167,6 +171,8 @@ pub struct CrawlOptions {
     pub include_paths: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub exclude_paths: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub crawl_entire_domain: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub allow_subdomains: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]

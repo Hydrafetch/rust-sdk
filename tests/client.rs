@@ -699,3 +699,24 @@ async fn cancel_sends_delete_on_the_job_id() {
         ["Cancelled", "Cancelled"]
     );
 }
+
+#[tokio::test]
+async fn submit_batch_says_which_urls_were_skipped() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/v1/web/batch"))
+        .respond_with(ResponseTemplate::new(201).set_body_json(
+            json!({ "batchId": "b_1", "status": "queued", "invalidUrls": ["htps//a"] }),
+        ))
+        .mount(&server)
+        .await;
+    let hf = client_for(&server).await;
+    let accepted = hf
+        .submit_batch(&["https://a.example", "htps//a"], None)
+        .await
+        .unwrap();
+    assert_eq!(
+        (accepted.batch_id.as_str(), accepted.invalid_urls),
+        ("b_1", vec!["htps//a".to_string()])
+    );
+}

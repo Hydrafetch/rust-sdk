@@ -528,11 +528,32 @@ impl Client {
         urls: &[&str],
         options: Option<BatchOptions>,
     ) -> Result<String> {
+        Ok(self.submit_batch(urls, options).await?.batch_id)
+    }
+
+    pub async fn submit_batch(
+        &self,
+        urls: &[&str],
+        options: Option<BatchOptions>,
+    ) -> Result<BatchAccepted> {
         let body = Self::merge(json!({ "urls": urls }), options);
         let payload: Value = self
             .request(reqwest::Method::POST, "/v1/web/batch", Some(body), &[])
             .await?;
-        job_id(&payload, "batchId")
+        let invalid_urls = payload
+            .get("invalidUrls")
+            .and_then(Value::as_array)
+            .map(|urls| {
+                urls.iter()
+                    .filter_map(|u| u.as_str().map(str::to_string))
+                    .collect()
+            })
+            .unwrap_or_default();
+        Ok(BatchAccepted {
+            batch_id: job_id(&payload, "batchId")?,
+            invalid_urls,
+            status: crate::generated::BatchAcceptedDtoStatus::Queued,
+        })
     }
 
     pub async fn crawl_status(&self, id: &str) -> Result<Job> {

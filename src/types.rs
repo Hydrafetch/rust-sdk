@@ -200,6 +200,8 @@ pub type JobPage = crate::generated::CrawlPageResultDto;
 
 pub type Job = crate::generated::CrawlStatusResponseDto;
 
+pub type BatchAccepted = crate::generated::BatchAcceptedDto;
+
 impl crate::generated::CrawlStatusResponseDto {
     pub fn is_done(&self) -> bool {
         use crate::generated::CrawlStatusResponseDtoStatus as S;

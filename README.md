@@ -317,6 +317,7 @@ let hf = Client::builder()
 | `images(url)` | `ImagesResult` | 1 |
 | `crawl(url, opts, wait)`, `batch(urls, opts, wait)` | `Job` | 1 per page |
 | `start_crawl`, `start_batch` | `String` | 1 per page |
+| `submit_batch(urls, options)` | `BatchAccepted` (`batch_id`, `status`, `invalid_urls`) | 1 per page |
 | `crawl_status(id)`, `batch_status(id)` | `Job` | free |
 | `cancel_crawl(id)`, `cancel_batch(id)` | `Job` | free, pages not yet read are not charged |
 | `rate_result(input)` | `RateResultResponse` | free |

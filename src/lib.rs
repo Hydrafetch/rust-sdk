@@ -1,5 +1,5 @@
 mod error;
-#[allow(clippy::all)]
+#[allow(clippy::all, dead_code)]
 pub mod generated;
 mod types;
 
@@ -253,6 +253,7 @@ impl Client {
             }
             let payload = match envelope.and_then(|e| e.data) {
                 Some(data) => data,
+                None if text.trim().is_empty() => Value::Null,
                 None => serde_json::from_str(&text)?,
             };
             return Ok(serde_json::from_value(payload)?);
@@ -586,6 +587,83 @@ impl Client {
         .await
     }
 
+    pub async fn create_monitor(&self, input: &MonitorInput) -> Result<Monitor> {
+        let body = serde_json::to_value(input)?;
+        self.request(reqwest::Method::POST, "/v1/web/monitors", Some(body), &[])
+            .await
+    }
+
+    pub async fn list_monitors(&self, page: MonitorPage) -> Result<Vec<Monitor>> {
+        self.request(
+            reqwest::Method::GET,
+            "/v1/web/monitors",
+            None,
+            &page_query(page),
+        )
+        .await
+    }
+
+    pub async fn get_monitor(&self, id: &str) -> Result<Monitor> {
+        self.request(reqwest::Method::GET, &monitor_path(id, &[]), None, &[])
+            .await
+    }
+
+    pub async fn update_monitor(&self, id: &str, changes: &MonitorChanges) -> Result<Monitor> {
+        let body = serde_json::to_value(changes)?;
+        self.request(
+            reqwest::Method::PATCH,
+            &monitor_path(id, &[]),
+            Some(body),
+            &[],
+        )
+        .await
+    }
+
+    pub async fn delete_monitor(&self, id: &str) -> Result<()> {
+        self.request::<serde_json::Value>(
+            reqwest::Method::DELETE,
+            &monitor_path(id, &[]),
+            None,
+            &[],
+        )
+        .await
+        .map(|_| ())
+    }
+
+    pub async fn run_monitor(&self, id: &str) -> Result<MonitorCheckSummary> {
+        self.request(
+            reqwest::Method::POST,
+            &monitor_path(id, &["run"]),
+            None,
+            &[],
+        )
+        .await
+    }
+
+    pub async fn list_monitor_checks(
+        &self,
+        id: &str,
+        page: MonitorPage,
+    ) -> Result<Vec<MonitorCheckSummary>> {
+        self.request(
+            reqwest::Method::GET,
+            &monitor_path(id, &["checks"]),
+            None,
+            &page_query(page),
+        )
+        .await
+    }
+
+    pub async fn get_monitor_check(&self, id: &str, check_id: &str) -> Result<MonitorCheck> {
+        self.request(
+            reqwest::Method::GET,
+            &monitor_path(id, &["checks", check_id]),
+            None,
+            &[],
+        )
+        .await
+    }
+
     pub async fn cancel_batch(&self, id: &str) -> Result<Job> {
         self.request(
             reqwest::Method::DELETE,
@@ -643,6 +721,38 @@ impl Client {
 enum JobKind {
     Crawl,
     Batch,
+}
+
+fn path_segment(raw: &str) -> String {
+    let mut out = String::with_capacity(raw.len());
+    for b in raw.bytes() {
+        if b.is_ascii_alphanumeric() || matches!(b, b'-' | b'_' | b'.' | b'~') {
+            out.push(b as char);
+        } else {
+            out.push_str(&format!("%{b:02X}"));
+        }
+    }
+    out
+}
+
+fn monitor_path(id: &str, rest: &[&str]) -> String {
+    let mut path = format!("/v1/web/monitors/{}", path_segment(id));
+    for part in rest {
+        path.push('/');
+        path.push_str(&path_segment(part));
+    }
+    path
+}
+
+fn page_query(page: MonitorPage) -> Vec<(&'static str, String)> {
+    let mut query = Vec::new();
+    if let Some(limit) = page.limit {
+        query.push(("limit", limit.to_string()));
+    }
+    if let Some(offset) = page.offset {
+        query.push(("offset", offset.to_string()));
+    }
+    query
 }
 
 fn job_id(payload: &Value, key: &str) -> Result<String> {

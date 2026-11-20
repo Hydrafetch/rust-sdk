@@ -15,6 +15,12 @@ PAIRS = {
     "HiringChangesOptions": ("JobsIndexChangesRequestDto", {"domains", "since"}),
     "NewsOptions": ("NewsRequestDto", {"query"}),
     "Location": ("LocationDto", set()),
+    "MonitorInput": ("CreateMonitorDto", set()),
+    "MonitorChanges": ("UpdateMonitorDto", set()),
+}
+
+UNIONS = {
+    "MonitorTarget": ["MonitorPagesTargetDto", "MonitorSiteTargetDto", "MonitorSearchTargetDto"],
 }
 
 
@@ -60,6 +66,26 @@ for mine, (theirs, positional) in PAIRS.items():
     for fm in re.finditer(r"(?:#\[serde\(rename = \"(\w+)\"\)\]\s*)?pub (\w+): ([^,\n]+),", m.group(1)):
         fields[fm.group(1) or camel(fm.group(2))] = rust_kind(fm.group(3))
     props = {k: api_kind(v, schemas) for k, v in schemas[theirs].get("properties", {}).items() if k not in positional}
+    for name, kind in props.items():
+        if name not in fields:
+            problems.append(f"{mine}: {name} is in the API but not here")
+        elif fields[name] != kind and not (kind == "string" and fields[name] == "object_or_enum"):
+            problems.append(f"{mine}: {name} is {fields[name]} here but {kind} in the API")
+    for name in fields:
+        if name not in props:
+            problems.append(f"{mine}: {name} is here but the API does not take it")
+for mine, variants in UNIONS.items():
+    m = re.search(rf"pub struct {mine} \{{(.*?)\n\}}", src, re.S)
+    if not m:
+        problems.append(f"{mine}: not found in src/types.rs")
+        continue
+    fields = {}
+    for fm in re.finditer(r"(?:#\[serde\(rename = \"(\w+)\"\)\]\s*)?pub (\w+): ([^,\n]+),", m.group(1)):
+        fields[fm.group(1) or camel(fm.group(2))] = rust_kind(fm.group(3))
+    props = {}
+    for theirs in variants:
+        for k, v in schemas[theirs].get("properties", {}).items():
+            props[k] = api_kind(v, schemas)
     for name, kind in props.items():
         if name not in fields:
             problems.append(f"{mine}: {name} is in the API but not here")

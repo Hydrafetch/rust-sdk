@@ -1,5 +1,6 @@
 use hydrafetch::{
-    BatchOptions, Client, ExtractOptions, Format, Location, NewsOptions, RateResultInput, Rating,
+    BatchOptions, Client, ExtractOptions, Format, Location, MonitorChanges, MonitorInput,
+    MonitorPage, MonitorSchedule, MonitorTarget, NewsOptions, RateResultInput, Rating,
     ScrapeOptions, SearchJobsOptions, WaitOptions,
 };
 use serde_json::{json, Value};
@@ -719,4 +720,135 @@ async fn submit_batch_says_which_urls_were_skipped() {
         (accepted.batch_id.as_str(), accepted.invalid_urls),
         ("b_1", vec!["htps//a".to_string()])
     );
+}
+
+fn monitor_json() -> Value {
+    json!({
+        "id": "mon_1", "name": "Competitors", "status": "active", "pausedReason": null,
+        "schedule": { "every": "1h" },
+        "targets": [{ "id": "t1", "type": "site", "url": "https://acme.com/blog", "limit": 200, "readNewPages": true }],
+        "webhook": null, "retentionDays": 30, "email": "off",
+        "nextRunAt": null, "lastRunAt": null, "lastCheck": null, "createdAt": "2026-11-20T10:00:00.000Z"
+    })
+}
+
+fn summary_json() -> Value {
+    json!({
+        "id": "chk_1", "status": "completed", "trigger": "manual", "totalPages": 1,
+        "same": 0, "changed": 0, "new": 1, "removed": 0, "error": 0, "creditsUsed": 2,
+        "startedAt": "2026-11-20T10:00:00.000Z", "finishedAt": "2026-11-20T10:00:05.000Z"
+    })
+}
+
+#[tokio::test]
+async fn create_monitor_sends_targets_as_the_api_names_them() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/v1/web/monitors"))
+        .respond_with(
+            ResponseTemplate::new(201)
+                .set_body_json(json!({ "success": true, "data": monitor_json() })),
+        )
+        .mount(&server)
+        .await;
+    let hf = client_for(&server).await;
+    let monitor = hf
+        .create_monitor(&MonitorInput {
+            name: "Competitors".into(),
+            schedule: MonitorSchedule { every: "1h".into() },
+            targets: vec![
+                MonitorTarget::pages(["https://acme.com/pricing"]).goal("a plan gets cheaper"),
+                MonitorTarget::site("https://acme.com/blog"),
+                MonitorTarget::search("acme funding"),
+            ],
+            email: Some("daily".into()),
+            ..MonitorInput::default()
+        })
+        .await
+        .unwrap();
+    assert_eq!(monitor.id, "mon_1");
+    let sent: Value = server.received_requests().await.unwrap()[0]
+        .body_json()
+        .unwrap();
+    assert_eq!(
+        sent,
+        json!({
+            "name": "Competitors",
+            "schedule": { "every": "1h" },
+            "targets": [
+                { "type": "pages", "urls": ["https://acme.com/pricing"], "goal": "a plan gets cheaper" },
+                { "type": "site", "url": "https://acme.com/blog" },
+                { "type": "search", "query": "acme funding" }
+            ],
+            "email": "daily"
+        })
+    );
+}
+
+#[tokio::test]
+async fn monitor_routes() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/v1/web/monitors"))
+        .and(query_param("limit", "10"))
+        .respond_with(ok(json!({ "success": true, "data": [monitor_json()] })))
+        .mount(&server)
+        .await;
+    Mock::given(method("PATCH"))
+        .and(path("/v1/web/monitors/mon_1"))
+        .respond_with(ok(json!({ "success": true, "data": monitor_json() })))
+        .mount(&server)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/v1/web/monitors/mon_1/run"))
+        .respond_with(
+            ResponseTemplate::new(201)
+                .set_body_json(json!({ "success": true, "data": summary_json() })),
+        )
+        .mount(&server)
+        .await;
+    let mut check = summary_json();
+    check["monitorId"] = json!("mon_1");
+    check["changes"] = json!([{
+        "url": "https://acme.com/blog/c", "targetId": "t1", "status": "new",
+        "title": "Series B", "excerpt": "We raised", "judge": { "match": true, "reason": "A funding post." },
+        "diff": null, "fieldChanges": [], "error": null, "detectedAt": "2026-11-20T10:00:04.000Z"
+    }]);
+    Mock::given(method("GET"))
+        .and(path("/v1/web/monitors/mon_1/checks/chk%201"))
+        .respond_with(ok(json!({ "success": true, "data": check })))
+        .mount(&server)
+        .await;
+    Mock::given(method("DELETE"))
+        .and(path("/v1/web/monitors/mon_1"))
+        .respond_with(ResponseTemplate::new(204))
+        .mount(&server)
+        .await;
+    let hf = client_for(&server).await;
+    let listed = hf
+        .list_monitors(MonitorPage {
+            limit: Some(10),
+            offset: None,
+        })
+        .await
+        .unwrap();
+    hf.update_monitor(
+        "mon_1",
+        &MonitorChanges {
+            status: Some("paused".into()),
+            ..MonitorChanges::default()
+        },
+    )
+    .await
+    .unwrap();
+    let run = hf.run_monitor("mon_1").await.unwrap();
+    let got = hf.get_monitor_check("mon_1", "chk 1").await.unwrap();
+    hf.delete_monitor("mon_1").await.unwrap();
+    assert_eq!(listed.len(), 1);
+    assert_eq!(run.id, "chk_1");
+    assert_eq!(got.changes[0].judge.as_ref().map(|j| j.match_), Some(true));
+    let patch: Value = server.received_requests().await.unwrap()[1]
+        .body_json()
+        .unwrap();
+    assert_eq!(patch, json!({ "status": "paused" }));
 }

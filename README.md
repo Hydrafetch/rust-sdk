@@ -222,6 +222,43 @@ println!("{} opened, {} closed", changes[0].totals.opened, changes[0].totals.clo
 
 A search costs 1 credit per 10 jobs returned, and an empty one is free. Hiring changes cost 1 credit per company we have jobs for; companies we do not track yet come back empty and are free.
 
+## Monitors
+
+Watch pages, a whole site or a search on a schedule and hear about what changed. Monitors are available on paid plans.
+
+```rust
+use hydrafetch::{MonitorInput, MonitorPage, MonitorSchedule, MonitorTarget};
+
+let monitor = hf
+    .create_monitor(&MonitorInput {
+        name: "Competitors".into(),
+        schedule: MonitorSchedule { every: "1h".into() },
+        targets: vec![
+            MonitorTarget::pages(["https://acme.com/pricing"]).goal("a plan gets cheaper"),
+            MonitorTarget::site("https://acme.com/blog"),
+            MonitorTarget::search("acme funding"),
+        ],
+        ..MonitorInput::default()
+    })
+    .await?;
+```
+
+A pages target reports text that changed, as a line diff, plus fields such as price and availability. A site target reports pages that appear or go away, with each new page's title and opening lines. A search target reports results it has never returned before. With a `goal`, a change only alerts when it matches, and every change keeps the verdict and a one-sentence reason.
+
+Checks run in the background. Your webhook receives `monitor.change` for each change and `monitor.check.completed` once a check ends, or read them yourself:
+
+```rust
+let checks = hf.list_monitor_checks(&monitor.id, MonitorPage { limit: Some(1), offset: None }).await?;
+let check = hf.get_monitor_check(&monitor.id, &checks[0].id).await?;
+for change in &check.changes {
+    println!("{:?} {}", change.status, change.url);
+}
+
+hf.run_monitor(&monitor.id).await?; // check now, outside the schedule
+```
+
+A page read costs 1 credit, a site costs 1 per check plus 1 per new page read, and a search costs 1 per check. A goal adds 1 credit per change it checks. Pages that cannot be read are not charged.
+
 ## Brand data
 
 ```rust
@@ -320,6 +357,11 @@ let hf = Client::builder()
 | `submit_batch(urls, options)` | `BatchAccepted` (`batch_id`, `status`, `invalid_urls`) | 1 per page |
 | `crawl_status(id)`, `batch_status(id)` | `Job` | free |
 | `cancel_crawl(id)`, `cancel_batch(id)` | `Job` | free, pages not yet read are not charged |
+| `create_monitor(&input)`, `update_monitor(id, &changes)` | `Monitor` | free; checks are charged as they run |
+| `list_monitors(page)`, `get_monitor(id)` | `Vec<Monitor>`, `Monitor` | free |
+| `run_monitor(id)` | `MonitorCheckSummary` | as a scheduled check |
+| `list_monitor_checks(id, page)`, `get_monitor_check(id, check_id)` | `Vec<MonitorCheckSummary>`, `MonitorCheck` | free |
+| `delete_monitor(id)` | `()` | free |
 | `rate_result(input)` | `RateResultResponse` | free |
 
 Failed requests are not billed. Pricing does not vary with page difficulty, so there is no render, stealth or proxy option to set.

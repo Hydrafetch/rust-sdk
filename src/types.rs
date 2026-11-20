@@ -373,3 +373,131 @@ pub type BrandResult = crate::generated::WebBrandDataDto;
 pub type LogoResult = crate::generated::LogoDescriptionDto;
 
 pub type StyleguideResult = crate::generated::WebStyleguideDataDto;
+
+#[derive(Debug, Clone, Default, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MonitorTarget {
+    #[serde(rename = "type")]
+    pub kind: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub urls: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub selector: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ignore: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub trigger_on: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub scrape_options: Option<ScrapeOptions>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub include_paths: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub exclude_paths: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub read_new_pages: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub query: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub time_range: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub country: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub include_domains: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub exclude_domains: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub limit: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub goal: Option<String>,
+}
+
+impl MonitorTarget {
+    pub fn pages<I, S>(urls: I) -> Self
+    where
+        I: IntoIterator<Item = S>,
+        S: Into<String>,
+    {
+        Self {
+            kind: "pages".into(),
+            urls: Some(urls.into_iter().map(Into::into).collect()),
+            ..Self::default()
+        }
+    }
+
+    pub fn site(url: impl Into<String>) -> Self {
+        Self {
+            kind: "site".into(),
+            url: Some(url.into()),
+            ..Self::default()
+        }
+    }
+
+    pub fn search(query: impl Into<String>) -> Self {
+        Self {
+            kind: "search".into(),
+            query: Some(query.into()),
+            ..Self::default()
+        }
+    }
+
+    pub fn goal(mut self, goal: impl Into<String>) -> Self {
+        self.goal = Some(goal.into());
+        self
+    }
+}
+
+pub type MonitorWebhook = crate::generated::MonitorWebhookDto;
+
+#[derive(Debug, Clone, Default, Serialize)]
+pub struct MonitorSchedule {
+    pub every: String,
+}
+
+#[derive(Debug, Clone, Default, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MonitorInput {
+    pub name: String,
+    pub schedule: MonitorSchedule,
+    pub targets: Vec<MonitorTarget>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub webhook: Option<MonitorWebhook>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub retention_days: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub email: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MonitorChanges {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub schedule: Option<MonitorSchedule>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub targets: Option<Vec<MonitorTarget>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub webhook: Option<MonitorWebhook>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub retention_days: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub email: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+}
+
+pub type Monitor = crate::generated::MonitorResponseDto;
+
+pub type MonitorCheckSummary = crate::generated::MonitorCheckSummaryDto;
+
+pub type MonitorCheck = crate::generated::MonitorCheckResponseDto;
+
+pub type MonitorChange = crate::generated::MonitorChangeDto;
+
+#[derive(Debug, Clone, Copy, Default)]
+pub struct MonitorPage {
+    pub limit: Option<u32>,
+    pub offset: Option<u32>,
+}
